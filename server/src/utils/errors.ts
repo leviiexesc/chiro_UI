@@ -9,7 +9,9 @@ export class AppError extends Error {
     this.code = code;
     this.statusCode = statusCode;
     this.details = details;
-    Error.captureStackTrace(this, this.constructor);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
   }
 }
 

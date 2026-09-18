@@ -11,7 +11,7 @@ router.use(authenticateAdmin);
 
 const createProductSchema = z.object({
   name: z.string().min(2).max(100),
-  slug: z.string().min(2).max(100).regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens"),
+  slug: z.string().min(2).max(100).optional(),
   description: z.string().max(500).optional(),
   maxDevices: z.number().int().min(1).max(100).default(1),
   defaultDurationDays: z.number().int().min(1).nullable().optional(),
@@ -47,7 +47,17 @@ router.get("/", async (req, res, next) => {
 router.post("/", async (req, res, next) => {
   try {
     const body = createProductSchema.parse(req.body);
-    const product = await prisma.product.create({ data: body });
+    const slug = body.slug || body.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+
+    const product = await prisma.product.create({
+      data: {
+        name: body.name,
+        slug,
+        description: body.description,
+        maxDevices: body.maxDevices,
+        defaultDurationDays: body.defaultDurationDays,
+      },
+    });
 
     await AuditService.log({
       adminId: req.admin?.id,
