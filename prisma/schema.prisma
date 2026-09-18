@@ -1,0 +1,103 @@
+// ===================================================
+// CHIRO UI LICENSE CENTER - PRISMA SCHEMA
+// ===================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+}
+
+enum LicenseStatus {
+  UNUSED
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+model AdminUser {
+  id           String     @id @default(uuid())
+  username     String     @unique
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(ADMIN)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
+
+  @@map("admin_users")
+}
+
+model Product {
+  id                  String    @id @default(uuid())
+  name                String
+  slug                String    @unique
+  description         String?
+  maxDevices          Int       @default(1)
+  defaultDurationDays Int?      // null = lifetime
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  licenses            License[]
+
+  @@map("products")
+}
+
+model License {
+  id               String        @id @default(uuid())
+  key              String        @unique
+  productId        String
+  product          Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  status           LicenseStatus @default(UNUSED)
+  maxDevices       Int           @default(1)
+  expiresAt        DateTime?     // null = lifetime
+  totalActivations Int           @default(0)
+  note             String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  devices          Device[]
+
+  @@index([key])
+  @@index([status])
+  @@index([productId])
+  @@map("licenses")
+}
+
+model Device {
+  id         String   @id @default(uuid())
+  licenseId  String
+  license    License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  hwid       String
+  ipAddress  String?
+  userAgent  String?
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@unique([licenseId, hwid])
+  @@index([hwid])
+  @@map("devices")
+}
+
+model AuditLog {
+  id         String     @id @default(uuid())
+  adminId    String?
+  admin      AdminUser? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action     String     // e.g. "LICENSE_GENERATED", "LICENSE_REVOKED", "HWID_RESET"
+  targetType String     // e.g. "License", "Device", "Product", "Auth"
+  targetId   String?
+  ipAddress  String?
+  details    String?    // JSON stringified context
+  createdAt  DateTime   @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

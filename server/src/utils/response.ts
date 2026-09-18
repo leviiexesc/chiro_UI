@@ -1,0 +1,47 @@
+import { Response } from "express";
+
+export interface ApiSuccessResponse<T> {
+  success: true;
+  data: T;
+  meta?: Record<string, any>;
+}
+
+export interface ApiErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+}
+
+export function sendSuccess<T>(res: Response, data: T, statusCode = 200, meta?: Record<string, any>) {
+  const body: ApiSuccessResponse<T> = {
+    success: true,
+    data,
+  };
+  if (meta) {
+    body.meta = meta;
+  }
+  return res.status(statusCode).json(body);
+}
+
+export function sendError(
+  res: Response,
+  code: string,
+  message: string,
+  statusCode = 400,
+  details?: any
+) {
+  const body: ApiErrorResponse = {
+    success: false,
+    error: {
+      code,
+      message,
+    },
+  };
+  if (details !== undefined) {
+    body.error.details = details;
+  }
+  return res.status(statusCode).json(body);
+}
