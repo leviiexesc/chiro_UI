@@ -58,9 +58,13 @@ model License {
   product          Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   status           LicenseStatus @default(UNUSED)
   maxDevices       Int           @default(1)
+  hwidLock         Boolean       @default(true)
   expiresAt        DateTime?     // null = lifetime
   totalActivations Int           @default(0)
   note             String?
+  customerEmail    String?
+  customerDiscord  String?
+  customerName     String?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   devices          Device[]

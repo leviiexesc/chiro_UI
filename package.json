@@ -2,7 +2,7 @@
   "name": "chiro-license-center",
   "version": "1.0.0",
   "description": "Production-ready Chiro UI License Center and Key Authentication Backend",
-  "main": "dist/server/src/index.js",
+  "main": "dist/server/index.js",
   "scripts": {
     "dev:server": "tsx watch server/src/index.ts",
     "dev:client": "npm --prefix client run dev",
@@ -10,7 +10,7 @@
     "build:server": "tsc -p server/tsconfig.json",
     "build:client": "npm --prefix client run build",
     "build": "npm run prisma:generate && npm run build:server && npm run build:client",
-    "start": "node dist/server/src/index.js",
+    "start": "node dist/server/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:dev": "prisma migrate dev",

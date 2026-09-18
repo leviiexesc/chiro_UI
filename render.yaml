@@ -17,9 +17,10 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm install && npm run build && npx prisma migrate deploy && npm run prisma:seed
+    buildCommand: npm install && npm --prefix client install && npm run build && npx prisma db push && npm run prisma:seed
     startCommand: npm start
     healthCheckPath: /api/v1/health
+    autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
@@ -40,4 +41,4 @@ services:
       - key: INITIAL_ADMIN_EMAIL
         value: admin@chiro.local
       - key: INITIAL_ADMIN_PASSWORD
-        sync: false # Set manually in Render dashboard for security
+        value: ChangeThisSecurePassword2026!
