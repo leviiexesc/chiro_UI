@@ -1,4 +1,4 @@
-export type LicenseStatus = 'ACTIVE' | 'REVOKED' | 'EXPIRED' | 'SUSPENDED';
+export type LicenseStatus = 'UNUSED' | 'ACTIVE' | 'REVOKED' | 'EXPIRED' | 'SUSPENDED';
 export type AdminRole = 'SUPERADMIN' | 'ADMIN' | 'SUPPORT';
 
 export interface Product {

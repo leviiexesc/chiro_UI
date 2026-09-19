@@ -214,8 +214,9 @@ export class LicenseService {
       throw new ForbiddenError("The license has been revoked.", "LICENSE_REVOKED");
     }
 
-    // Check expiration
-    if (license.expiresAt && new Date() > license.expiresAt) {
+    // Check expiration: only active licenses expire.
+    // Unused licenses start their countdown upon first activation.
+    if (license.status !== LicenseStatus.UNUSED && license.expiresAt && new Date() > license.expiresAt) {
       if (license.status !== LicenseStatus.EXPIRED) {
         await prisma.license.update({
           where: { id: license.id },
@@ -301,7 +302,7 @@ export class LicenseService {
       throw new ForbiddenError("The license has been revoked.", "LICENSE_REVOKED");
     }
 
-    if (license.expiresAt && new Date() > license.expiresAt) {
+    if (license.status !== LicenseStatus.UNUSED && license.expiresAt && new Date() > license.expiresAt) {
       throw new ForbiddenError("The license has expired.", "LICENSE_EXPIRED");
     }
 
@@ -337,10 +338,20 @@ export class LicenseService {
       },
     });
 
+    // If license was UNUSED, calculate fresh expiration time starting from this exact activation moment!
+    let finalExpiresAt = license.expiresAt;
+    if (license.status === LicenseStatus.UNUSED && license.expiresAt) {
+      const durationMs = license.expiresAt.getTime() - license.createdAt.getTime();
+      if (durationMs > 0) {
+        finalExpiresAt = new Date(Date.now() + durationMs);
+      }
+    }
+
     const updatedLicense = await prisma.license.update({
       where: { id: license.id },
       data: {
         status: LicenseStatus.ACTIVE,
+        expiresAt: finalExpiresAt,
         totalActivations: { increment: 1 },
       },
       include: {

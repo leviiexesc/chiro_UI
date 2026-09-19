@@ -29,6 +29,19 @@ interface LicensesProps {
   onCloseBatchModal?: () => void;
 }
 
+const toDateTimeLocal = (iso?: string | null) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 export const Licenses: React.FC<LicensesProps> = ({
   initialSearch = '',
   createModalOpen = false,
@@ -375,10 +388,12 @@ export const Licenses: React.FC<LicensesProps> = ({
                             )}
                           </button>
                         </div>
-                        {lic.note && (
-                          <div className="text-[11px] mt-0.5 text-amber-400 font-sans font-medium truncate max-w-[180px]" title={lic.note}>
-                            🏷 {lic.note}
+                        {lic.note ? (
+                          <div className="inline-flex items-center gap-1 text-[11px] mt-1 px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-sans font-semibold max-w-[200px] truncate" title={lic.note}>
+                            🏷️ {lic.note}
                           </div>
+                        ) : (
+                          <div className="text-[10px] mt-0.5 text-gray-400 dark:text-gray-500 italic">No name</div>
                         )}
                       </td>
 
@@ -387,26 +402,27 @@ export const Licenses: React.FC<LicensesProps> = ({
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            lic.status === 'ACTIVE'
-                              ? 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20'
-                              : lic.status === 'REVOKED'
-                              ? 'bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/20'
-                              : 'bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/20'
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              lic.status === 'ACTIVE'
-                                ? 'bg-emerald-400'
-                                : lic.status === 'REVOKED'
-                                ? 'bg-rose-400'
-                                : 'bg-amber-400'
-                            }`}
-                          />
-                          {lic.status}
-                        </span>
+                        {lic.status === 'ACTIVE' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            ACTIVE
+                          </span>
+                        ) : lic.status === 'UNUSED' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                            UNUSED
+                          </span>
+                        ) : lic.status === 'REVOKED' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                            REVOKED
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500 dark:text-amber-400 border border-amber-500/20">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                            EXPIRED
+                          </span>
+                        )}
                       </td>
 
                       <td className="py-3.5 px-4 font-mono text-xs">
@@ -449,11 +465,33 @@ export const Licenses: React.FC<LicensesProps> = ({
 
                       <td className="py-3.5 px-4 text-xs font-mono text-gray-500 dark:text-gray-400">
                         {lic.expiresAt ? (
-                          <div>
-                            <div>{new Date(lic.expiresAt).toLocaleDateString()}</div>
-                            <div className="text-[11px] text-gray-400">{new Date(lic.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                          </div>
-                        ) : 'Lifetime'}
+                          lic.status === 'UNUSED' ? (
+                            <div>
+                              <div className="font-semibold text-blue-400">
+                                {(() => {
+                                  const diffMs = new Date(lic.expiresAt).getTime() - new Date(lic.createdAt).getTime();
+                                  if (diffMs <= 90000) return '1 Min';
+                                  if (diffMs <= 25 * 3600000) return '1 Day';
+                                  if (diffMs <= 8 * 86400000) return '7 Days';
+                                  if (diffMs <= 32 * 86400000) return '30 Days';
+                                  return Math.round(diffMs / 86400000) + ' Days';
+                                })()}
+                              </div>
+                              <div className="text-[10px] text-gray-400 italic">Starts on first use</div>
+                            </div>
+                          ) : (
+                            <div>
+                              <div className={new Date(lic.expiresAt) < new Date() ? 'text-rose-400 font-semibold' : 'text-gray-200'}>
+                                {new Date(lic.expiresAt).toLocaleDateString()}
+                              </div>
+                              <div className="text-[11px] text-gray-400">
+                                {new Date(lic.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                              </div>
+                            </div>
+                          )
+                        ) : (
+                          <span className="text-cyan-400 font-semibold">♾ Lifetime</span>
+                        )}
                       </td>
 
                       <td className="py-3.5 px-4 text-right">
@@ -553,6 +591,20 @@ export const Licenses: React.FC<LicensesProps> = ({
             </select>
           </div>
 
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-cyan-500 dark:text-cyan-400 mb-1.5 flex items-center gap-1.5">
+              <span>🏷️ Key Name / Label</span>
+              <span className="text-[10px] text-gray-400 font-normal lowercase">(for admin identification)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Discord Giveaway, VIP Access, Tester #3"
+              value={formData.note}
+              onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-cyan-500/30 focus:border-cyan-500 text-sm font-medium"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
@@ -591,7 +643,7 @@ export const Licenses: React.FC<LicensesProps> = ({
                       onClick={() => setFormData({ ...formData, expiresAt: val })}
                       className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${
                         active
-                          ? 'bg-cyan-500 border-cyan-500 text-white'
+                          ? 'bg-cyan-500 border-cyan-500 text-white shadow-sm shadow-cyan-500/30'
                           : 'bg-gray-100 dark:bg-[#161f36] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-cyan-400'
                       }`}
                     >
@@ -601,16 +653,14 @@ export const Licenses: React.FC<LicensesProps> = ({
                 })}
               </div>
               <input
-                type="date"
-                value={formData.expiresAt ? formData.expiresAt.split('T')[0] : ''}
-                onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
+                type="datetime-local"
+                value={toDateTimeLocal(formData.expiresAt)}
+                onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value ? new Date(e.target.value).toISOString() : '' })}
+                className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm font-mono text-xs"
               />
-              {formData.expiresAt && formData.expiresAt.includes('T') && (
-                <p className="text-[11px] text-cyan-400 mt-1">
-                  ⏱ Expires: {new Date(formData.expiresAt).toLocaleString()}
-                </p>
-              )}
+              <p className="text-[10px] text-gray-400 dark:text-gray-400 mt-1">
+                ⏱ Unused keys start duration upon first user activation.
+              </p>
             </div>
           </div>
 
@@ -629,7 +679,7 @@ export const Licenses: React.FC<LicensesProps> = ({
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
-              Customer Discord / Handle
+              Customer Discord / Handle (Optional)
             </label>
             <input
               type="text"
@@ -642,26 +692,13 @@ export const Licenses: React.FC<LicensesProps> = ({
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
-              Customer Email
+              Customer Email (Optional)
             </label>
             <input
               type="email"
               placeholder="customer@domain.com"
               value={formData.customerEmail}
               onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
-              Key Label / Name
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Discord Giveaway, VIP Access, Tester #3"
-              value={formData.note}
-              onChange={(e) => setFormData({ ...formData, note: e.target.value })}
               className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
             />
           </div>
@@ -750,6 +787,20 @@ export const Licenses: React.FC<LicensesProps> = ({
               </select>
             </div>
 
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-cyan-500 dark:text-cyan-400 mb-1.5 flex items-center gap-1.5">
+                <span>🏷️ Batch Label / Name</span>
+                <span className="text-[10px] text-gray-400 font-normal lowercase">(for admin identification)</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Discord Giveaway Batch, Tester Keys Oct"
+                value={batchFormData.note}
+                onChange={(e) => setBatchFormData({ ...batchFormData, note: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-cyan-500/30 focus:border-cyan-500 text-sm font-medium"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
@@ -804,7 +855,7 @@ export const Licenses: React.FC<LicensesProps> = ({
                       onClick={() => setBatchFormData({ ...batchFormData, expiresAt: val })}
                       className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${
                         active
-                          ? 'bg-cyan-500 border-cyan-500 text-white'
+                          ? 'bg-cyan-500 border-cyan-500 text-white shadow-sm shadow-cyan-500/30'
                           : 'bg-gray-100 dark:bg-[#161f36] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-cyan-400'
                       }`}
                     >
@@ -814,29 +865,14 @@ export const Licenses: React.FC<LicensesProps> = ({
                 })}
               </div>
               <input
-                type="date"
-                value={batchFormData.expiresAt ? batchFormData.expiresAt.split('T')[0] : ''}
-                onChange={(e) => setBatchFormData({ ...batchFormData, expiresAt: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
+                type="datetime-local"
+                value={toDateTimeLocal(batchFormData.expiresAt)}
+                onChange={(e) => setBatchFormData({ ...batchFormData, expiresAt: e.target.value ? new Date(e.target.value).toISOString() : '' })}
+                className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm font-mono text-xs"
               />
-              {batchFormData.expiresAt && batchFormData.expiresAt.includes('T') && (
-                <p className="text-[11px] text-cyan-400 mt-1">
-                  ⏱ Expires: {new Date(batchFormData.expiresAt).toLocaleString()}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
-                Batch Label / Name
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Discord Giveaway Batch, Tester Keys Oct"
-                value={batchFormData.note}
-                onChange={(e) => setBatchFormData({ ...batchFormData, note: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
-              />
+              <p className="text-[10px] text-gray-400 dark:text-gray-400 mt-1">
+                ⏱ Unused keys start duration upon first user activation.
+              </p>
             </div>
 
             <div className="flex justify-end gap-3 pt-3">
