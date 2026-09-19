@@ -548,8 +548,34 @@ export const Licenses: React.FC<LicensesProps> = ({
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
-                Expiration (Optional)
+                Duration
               </label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {[
+                  { label: '1 Min', ms: 60_000 },
+                  { label: '1 Day', ms: 86_400_000 },
+                  { label: '7 Days', ms: 7 * 86_400_000 },
+                  { label: '30 Days', ms: 30 * 86_400_000 },
+                  { label: 'Lifetime', ms: 0 },
+                ].map(({ label, ms }) => {
+                  const val = ms === 0 ? '' : new Date(Date.now() + ms).toISOString().split('T')[0];
+                  const active = ms === 0 ? formData.expiresAt === '' : formData.expiresAt === val;
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, expiresAt: val })}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${
+                        active
+                          ? 'bg-cyan-500 border-cyan-500 text-white'
+                          : 'bg-gray-100 dark:bg-[#161f36] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-cyan-400'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
               <input
                 type="date"
                 value={formData.expiresAt}
@@ -724,6 +750,44 @@ export const Licenses: React.FC<LicensesProps> = ({
                   className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
+                Duration
+              </label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {[
+                  { label: '1 Min', ms: 60_000 },
+                  { label: '1 Day', ms: 86_400_000 },
+                  { label: '7 Days', ms: 7 * 86_400_000 },
+                  { label: '30 Days', ms: 30 * 86_400_000 },
+                  { label: 'Lifetime', ms: 0 },
+                ].map(({ label, ms }) => {
+                  const val = ms === 0 ? '' : new Date(Date.now() + ms).toISOString().split('T')[0];
+                  const active = ms === 0 ? batchFormData.expiresAt === '' : batchFormData.expiresAt === val;
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => setBatchFormData({ ...batchFormData, expiresAt: val })}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${
+                        active
+                          ? 'bg-cyan-500 border-cyan-500 text-white'
+                          : 'bg-gray-100 dark:bg-[#161f36] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-cyan-400'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              <input
+                type="date"
+                value={batchFormData.expiresAt}
+                onChange={(e) => setBatchFormData({ ...batchFormData, expiresAt: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
+              />
             </div>
 
             <div>
