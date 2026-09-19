@@ -64,9 +64,9 @@ CORS_ORIGIN="*"
 NODE_ENV="development"
 PORT=10000
 
-INITIAL_ADMIN_USERNAME="admin"
-INITIAL_ADMIN_EMAIL="admin@chiro.local"
-INITIAL_ADMIN_PASSWORD="ChangeThisSecurePassword2026!"
+INITIAL_ADMIN_USERNAME=""
+INITIAL_ADMIN_EMAIL=""
+INITIAL_ADMIN_PASSWORD=""
 ```
 
 ### 4. Database Setup & Seeding
