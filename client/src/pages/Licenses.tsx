@@ -180,11 +180,19 @@ export const Licenses: React.FC<LicensesProps> = ({
 
     setSubmitting(true);
     try {
+      // If expiresAt already contains 'T' it's a full ISO string (set by a preset button),
+      // otherwise it's a plain YYYY-MM-DD from the date picker — parse as local midnight.
+      const expiresAtISO = formData.expiresAt
+        ? formData.expiresAt.includes('T')
+          ? formData.expiresAt
+          : new Date(formData.expiresAt + 'T23:59:59').toISOString()
+        : null;
+
       const created = await api.createLicense({
         productId: formData.productId,
         maxDevices: Number(formData.maxDevices),
         hwidLock: formData.hwidLock,
-        expiresAt: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null,
+        expiresAt: expiresAtISO,
         note: formData.note || undefined,
         customerEmail: formData.customerEmail || undefined,
         customerDiscord: formData.customerDiscord || undefined,
@@ -211,12 +219,18 @@ export const Licenses: React.FC<LicensesProps> = ({
 
     setSubmitting(true);
     try {
+      const batchExpiresAtISO = batchFormData.expiresAt
+        ? batchFormData.expiresAt.includes('T')
+          ? batchFormData.expiresAt
+          : new Date(batchFormData.expiresAt + 'T23:59:59').toISOString()
+        : null;
+
       const res = await api.batchGenerate({
         productId: batchFormData.productId,
         count: Number(batchFormData.count),
         maxDevices: Number(batchFormData.maxDevices),
         hwidLock: batchFormData.hwidLock,
-        expiresAt: batchFormData.expiresAt ? new Date(batchFormData.expiresAt).toISOString() : null,
+        expiresAt: batchExpiresAtISO,
         note: batchFormData.note || undefined,
       });
 
@@ -361,6 +375,11 @@ export const Licenses: React.FC<LicensesProps> = ({
                             )}
                           </button>
                         </div>
+                        {lic.note && (
+                          <div className="text-[11px] mt-0.5 text-amber-400 font-sans font-medium truncate max-w-[180px]" title={lic.note}>
+                            🏷 {lic.note}
+                          </div>
+                        )}
                       </td>
 
                       <td className="py-3.5 px-4 font-medium text-gray-700 dark:text-gray-300">
@@ -429,9 +448,12 @@ export const Licenses: React.FC<LicensesProps> = ({
                       </td>
 
                       <td className="py-3.5 px-4 text-xs font-mono text-gray-500 dark:text-gray-400">
-                        {lic.expiresAt
-                          ? new Date(lic.expiresAt).toLocaleDateString()
-                          : 'Lifetime'}
+                        {lic.expiresAt ? (
+                          <div>
+                            <div>{new Date(lic.expiresAt).toLocaleDateString()}</div>
+                            <div className="text-[11px] text-gray-400">{new Date(lic.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                          </div>
+                        ) : 'Lifetime'}
                       </td>
 
                       <td className="py-3.5 px-4 text-right">
@@ -558,8 +580,10 @@ export const Licenses: React.FC<LicensesProps> = ({
                   { label: '30 Days', ms: 30 * 86_400_000 },
                   { label: 'Lifetime', ms: 0 },
                 ].map(({ label, ms }) => {
-                  const val = ms === 0 ? '' : new Date(Date.now() + ms).toISOString().split('T')[0];
-                  const active = ms === 0 ? formData.expiresAt === '' : formData.expiresAt === val;
+                  const val = ms === 0 ? '' : new Date(Date.now() + ms).toISOString();
+                  const active = ms === 0
+                    ? formData.expiresAt === ''
+                    : formData.expiresAt.startsWith(val.substring(0, 16));
                   return (
                     <button
                       key={label}
@@ -578,10 +602,15 @@ export const Licenses: React.FC<LicensesProps> = ({
               </div>
               <input
                 type="date"
-                value={formData.expiresAt}
+                value={formData.expiresAt ? formData.expiresAt.split('T')[0] : ''}
                 onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
               />
+              {formData.expiresAt && formData.expiresAt.includes('T') && (
+                <p className="text-[11px] text-cyan-400 mt-1">
+                  ⏱ Expires: {new Date(formData.expiresAt).toLocaleString()}
+                </p>
+              )}
             </div>
           </div>
 
@@ -626,11 +655,11 @@ export const Licenses: React.FC<LicensesProps> = ({
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
-              Administrative Note
+              Key Label / Name
             </label>
             <input
               type="text"
-              placeholder="e.g. VIP lifetime access"
+              placeholder="e.g. Discord Giveaway, VIP Access, Tester #3"
               value={formData.note}
               onChange={(e) => setFormData({ ...formData, note: e.target.value })}
               className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
@@ -764,8 +793,10 @@ export const Licenses: React.FC<LicensesProps> = ({
                   { label: '30 Days', ms: 30 * 86_400_000 },
                   { label: 'Lifetime', ms: 0 },
                 ].map(({ label, ms }) => {
-                  const val = ms === 0 ? '' : new Date(Date.now() + ms).toISOString().split('T')[0];
-                  const active = ms === 0 ? batchFormData.expiresAt === '' : batchFormData.expiresAt === val;
+                  const val = ms === 0 ? '' : new Date(Date.now() + ms).toISOString();
+                  const active = ms === 0
+                    ? batchFormData.expiresAt === ''
+                    : batchFormData.expiresAt.startsWith(val.substring(0, 16));
                   return (
                     <button
                       key={label}
@@ -784,19 +815,24 @@ export const Licenses: React.FC<LicensesProps> = ({
               </div>
               <input
                 type="date"
-                value={batchFormData.expiresAt}
+                value={batchFormData.expiresAt ? batchFormData.expiresAt.split('T')[0] : ''}
                 onChange={(e) => setBatchFormData({ ...batchFormData, expiresAt: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
               />
+              {batchFormData.expiresAt && batchFormData.expiresAt.includes('T') && (
+                <p className="text-[11px] text-cyan-400 mt-1">
+                  ⏱ Expires: {new Date(batchFormData.expiresAt).toLocaleString()}
+                </p>
+              )}
             </div>
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-1.5">
-                Batch Description / Note
+                Batch Label / Name
               </label>
               <input
                 type="text"
-                placeholder="e.g. Discord Nitro Giveaway Batch"
+                placeholder="e.g. Discord Giveaway Batch, Tester Keys Oct"
                 value={batchFormData.note}
                 onChange={(e) => setBatchFormData({ ...batchFormData, note: e.target.value })}
                 className="w-full px-3 py-2 rounded-xl bg-gray-100 dark:bg-[#161f36] border border-transparent focus:border-cyan-500 text-sm"
