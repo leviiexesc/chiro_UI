@@ -113,6 +113,22 @@ local function getHWID()
     return tostring(hwid)
 end
 
+-- Helper: parse ISO 8601 timestamp string → unix seconds (module-level so accessible everywhere)
+local function parseIsoTimestamp(isoStr)
+    if not isoStr or isoStr == "" then return nil end
+    local pcallOk, dt = pcall(function() return DateTime.fromIsoDate(isoStr) end)
+    if pcallOk and dt then return dt.UnixTimestamp end
+    local y, mo, d, h, mi, s = tostring(isoStr):match("(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)")
+    if y then
+        local tOk, unix = pcall(function()
+            return os.time({ year = tonumber(y), month = tonumber(mo), day = tonumber(d),
+                             hour = tonumber(h), min = tonumber(mi), sec = tonumber(s) or 0 })
+        end)
+        if tOk and unix then return unix end
+    end
+    return nil
+end
+
 -- Key Storage Persistence Helpers
 local function saveKeyFile(fileName, keyVal)
     pcall(function()
@@ -2293,20 +2309,6 @@ function Chiro:CreateWindow(cfg)
         return false, errMsg
     end
 
-    -- Helper: parse ISO 8601 string to unix timestamp
-    local function parseIsoTimestamp(isoStr)
-        if not isoStr or isoStr == "" then return nil end
-        local pcallSuccess, dt = pcall(function() return DateTime.fromIsoDate(isoStr) end)
-        if pcallSuccess and dt then return dt.UnixTimestamp end
-        local y, mo, d, h, mi, s = tostring(isoStr):match("(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)")
-        if y then
-            local tOk, unix = pcall(function()
-                return os.time({ year = tonumber(y), month = tonumber(mo), day = tonumber(d), hour = tonumber(h), min = tonumber(mi), sec = tonumber(s) or 0 })
-            end)
-            if tOk then return unix end
-        end
-        return nil
-    end
 
     -- Background Watchdog: Auto-kicks from game when license expires or is revoked on server
     local watchdogActive = false
@@ -4391,14 +4393,16 @@ local LicenseParagraph = SetTab:CreateParagraph({
     Title   = "Active License",
     Content = getLicenseInfoContent(),
 })
+_G.ChiroLicenseParagraph = LicenseParagraph
 
 -- Continuously refresh the paragraph content every second so the countdown ticks dynamically!
 task.spawn(function()
     while ScreenGui and ScreenGui.Parent do
         task.wait(1.0)
         pcall(function()
-            if LicenseParagraph and LicenseParagraph.SetContent then
-                LicenseParagraph:SetContent(getLicenseInfoContent())
+            local targetPara = _G.ChiroLicenseParagraph or LicenseParagraph
+            if targetPara and targetPara.SetContent then
+                targetPara:SetContent(getLicenseInfoContent())
             end
         end)
     end
