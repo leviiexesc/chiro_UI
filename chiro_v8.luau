@@ -2326,6 +2326,12 @@ function Chiro:CreateWindow(cfg)
             StatusTicker.Text = "VERIFYING SAVED KEY..."
             local ok, info = verifyLicenseKey(saved)
             if ok then
+                -- Store license data globally for Settings display
+                _G.ChiroLicenseData = {
+                    key      = saved,
+                    hwid     = getHWID(),
+                    data     = info,
+                }
                 StatusTicker.Text = "LICENSE VERIFIED // WELCOME"
                 task.wait(0.3)
                 dismissInWindowLoader()
@@ -2409,6 +2415,12 @@ function Chiro:CreateWindow(cfg)
                     if keyConfig.SaveKey then
                         saveKeyFile(keyConfig.KeyFile or "chiro_license.key", enteredKey)
                     end
+                    -- Store license data globally for Settings display
+                    _G.ChiroLicenseData = {
+                        key  = enteredKey,
+                        hwid = getHWID(),
+                        data = info,
+                    }
                     StatusTicker.Text = "ACCESS GRANTED // WELCOME"
                     StatusTicker.TextColor3 = Color3.fromRGB(34, 197, 94)
                     SubmitBtn.Text = "AUTHENTICATED"
@@ -4192,6 +4204,64 @@ end)
 SetTab:CreateParagraph({
     Title   = "Chiro UI v8.0 Features",
     Content = "Executor: " .. ExecutorName .. "\nGame: " .. GameName .. "\nIncludes full Job ID copier & server joiner, redesigned high-definition text inputs with clear buttons, and complete Fluent-style SaveManager & InterfaceManager addon modules.",
+})
+
+-- ── LICENSE INFO SECTION ─────────────────────────────────────
+SetTab:CreateSection("License Key Information")
+
+-- Helper: format expiry timestamp → human-readable string
+local function formatExpiry(expiresAt)
+    if not expiresAt or expiresAt == "" or expiresAt == nil then
+        return "♾  Lifetime (No Expiry)"
+    end
+    -- expiresAt is an ISO 8601 string from the API, e.g. "2025-10-01T00:00:00.000Z"
+    local y, mo, d, h, mi, s = tostring(expiresAt):match("(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)")
+    if y then
+        return string.format("%s/%s/%s %s:%s UTC", d, mo, y, h, mi)
+    end
+    return tostring(expiresAt)
+end
+
+-- Build content string from _G.ChiroLicenseData (populated after key verification)
+local function getLicenseInfoContent()
+    local ld = _G.ChiroLicenseData
+    if not ld then
+        return "No license data available.\nPlease restart to verify your license key."
+    end
+
+    local keyStr    = tostring(ld.key or "—")
+    local hwidStr   = tostring(ld.hwid or getHWID() or "—")
+    local expStr    = "—"
+    local devStr    = "—"
+
+    if ld.data then
+        local d = ld.data
+        -- Devices: activations / maxDevices
+        local totalAct  = tonumber(d.totalActivations or d.activations)
+        local maxDev    = tonumber(d.maxDevices)
+        if totalAct and maxDev then
+            devStr = tostring(totalAct) .. " / " .. tostring(maxDev) .. " devices"
+        elseif maxDev then
+            devStr = "— / " .. tostring(maxDev) .. " devices"
+        end
+        -- Expiry
+        expStr = formatExpiry(d.expiresAt)
+    end
+
+    -- Truncate HWID to keep paragraph readable
+    local hwidDisplay = string.len(hwidStr) > 24 and (string.sub(hwidStr, 1, 22) .. "…") or hwidStr
+
+    return table.concat({
+        "🔑  Key: " .. keyStr,
+        "🖥  HWID: " .. hwidDisplay,
+        "📱  Devices: " .. devStr,
+        "⏳  Expires: " .. expStr,
+    }, "\n")
+end
+
+SetTab:CreateParagraph({
+    Title   = "Active License",
+    Content = getLicenseInfoContent(),
 })
 
 -- Select MainTab on launch so user sees sections and controls immediately
