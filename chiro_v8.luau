@@ -2411,7 +2411,39 @@ function Chiro:CreateWindow(cfg)
             return
         end
 
-        -- Check saved key first
+        -- Priority 1: Check getgenv().Key (injected externally by loader script)
+        local envKey = (getgenv and getgenv().Key) or nil
+        if envKey and tostring(envKey) ~= "" and tostring(envKey) ~= "lisence key" then
+            StatusTicker.Text = "VERIFYING LOADER KEY..."
+            local ok, info = verifyLicenseKey(tostring(envKey))
+            if ok then
+                local licObj = (type(info) == "table" and (info.license or info)) or {}
+                local resolvedKey = tostring(licObj.key or envKey)
+                if keyConfig.SaveKey then
+                    saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
+                end
+                _G.ChiroLicenseData = {
+                    key        = resolvedKey,
+                    hwid       = getHWID(),
+                    data       = info,
+                    expiresAt  = licObj.expiresAt,
+                    isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
+                }
+                startLicenseWatchdog(resolvedKey, info)
+                StatusTicker.Text = "LICENSE VERIFIED // WELCOME"
+                task.wait(0.3)
+                dismissInWindowLoader()
+                Chiro:Notify({
+                    Title = "LICENSE ACTIVE",
+                    Content = "Authenticated via Cloud License API. HWID bound.",
+                    Kind = "success",
+                    Duration = 4,
+                })
+                return
+            end
+        end
+
+        -- Priority 2: Check saved key file
         local saved = loadKeyFile(keyConfig.KeyFile or "chiro_license.key")
         if saved and saved ~= "" then
             StatusTicker.Text = "VERIFYING SAVED KEY..."
@@ -2419,7 +2451,6 @@ function Chiro:CreateWindow(cfg)
             if ok then
                 local licObj = (type(info) == "table" and (info.license or info)) or {}
                 local resolvedKey = tostring(licObj.key or saved)
-                -- Store license data globally for Settings display
                 _G.ChiroLicenseData = {
                     key        = resolvedKey,
                     hwid       = getHWID(),
@@ -3933,16 +3964,22 @@ function Chiro:CreateWindow(cfg)
             Body.Parent = Card
             register("MutedTexts", Body)
 
-            Card.SetContent = function(self, newContent)
+            local El = {
+                _frame = Card,
+                Card = Card,
+                TitleLabel = Title,
+                BodyLabel = Body,
+            }
+            function El:SetContent(newContent)
                 Body.Text = tostring(newContent or "")
             end
-            Card.Set = function(self, newCfg)
+            function El:Set(newCfg)
                 if newCfg.Title then Title.Text = tostring(newCfg.Title) end
                 if newCfg.Content then Body.Text = tostring(newCfg.Content) end
             end
 
             table.insert(Tab._elements, { _frame = Card, _name = string.lower(pCfg.Title or "paragraph") })
-            return Card
+            return El
         end
 
         -- ---- GAME BANNER CARD ----
@@ -4315,98 +4352,7 @@ SetTab:CreateParagraph({
     Content = "Executor: " .. ExecutorName .. "\nGame: " .. GameName .. "\nIncludes full Job ID copier & server joiner, redesigned high-definition text inputs with clear buttons, and complete Fluent-style SaveManager & InterfaceManager addon modules.",
 })
 
--- ── LICENSE INFO SECTION ─────────────────────────────────────
-SetTab:CreateSection("License Key Information")
 
--- Helper: format expiry timestamp with countdown calculation
-local function formatExpiry(expiresAt, isLifetime)
-    if isLifetime or not expiresAt or expiresAt == "" then
-        return "♾  Lifetime (No Expiry)"
-    end
-
-    local formatted = tostring(expiresAt)
-    local expUnix = parseIsoTimestamp(expiresAt)
-    local pcallSuccess, dt = pcall(function() return DateTime.fromIsoDate(expiresAt) end)
-    if pcallSuccess and dt then
-        local u = dt:ToUniversalTime()
-        formatted = string.format("%02d/%02d/%04d %02d:%02d:%02d UTC", u.Day, u.Month, u.Year, u.Hour, u.Minute, u.Second)
-    else
-        local y, mo, d, h, mi, s = tostring(expiresAt):match("(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+)")
-        if y then
-            formatted = string.format("%s/%s/%s %s:%s:%s UTC", d, mo, y, h, mi, s or "00")
-        end
-    end
-
-    if expUnix then
-        local nowUnix = os.time()
-        local diff = expUnix - nowUnix
-        if diff <= 0 then
-            return formatted .. " ❌ (EXPIRED)"
-        elseif diff < 60 then
-            return formatted .. " (" .. diff .. "s left)"
-        elseif diff < 3600 then
-            return formatted .. " (" .. math.floor(diff / 60) .. "m " .. (diff % 60) .. "s left)"
-        elseif diff < 86400 then
-            return formatted .. " (" .. math.floor(diff / 3600) .. "h " .. math.floor((diff % 3600) / 60) .. "m left)"
-        else
-            return formatted .. " (" .. math.floor(diff / 86400) .. "d left)"
-        end
-    end
-    return formatted
-end
-
--- Build content string from _G.ChiroLicenseData
-local function getLicenseInfoContent()
-    local ld = _G.ChiroLicenseData
-    if not ld then
-        return "No license data available.\nPlease restart to verify your license key."
-    end
-
-    local d = ld.data or {}
-    local lic = (type(d) == "table" and (d.license or d)) or {}
-
-    local keyStr = tostring(lic.key or ld.key or "—")
-    local hwidStr = tostring(lic.hwid or ld.hwid or getHWID() or "—")
-    local rawExp = lic.expiresAt or ld.expiresAt
-    local isLife = lic.isLifetime or ld.isLifetime or (rawExp == nil or rawExp == "")
-
-    local maxDev = tonumber(lic.maxDevices or d.maxDevices) or 1
-    local usedDev = tonumber(lic.devicesUsed or lic.currentDevices or d.devicesUsed or d.currentDevices) or 1
-    local devStr = tostring(usedDev) .. " / " .. tostring(maxDev) .. " devices"
-
-    local expStr = formatExpiry(rawExp, isLife)
-    local statusStr = tostring(lic.status or d.status or "ACTIVE")
-
-    -- Truncate HWID to keep paragraph clean
-    local hwidDisplay = string.len(hwidStr) > 24 and (string.sub(hwidStr, 1, 22) .. "…") or hwidStr
-
-    return table.concat({
-        "🔑  Key: " .. keyStr,
-        "🖥  HWID: " .. hwidDisplay,
-        "📱  Devices: " .. devStr,
-        "⏳  Expires: " .. expStr,
-        "⚡  Status: " .. statusStr,
-    }, "\n")
-end
-
-local LicenseParagraph = SetTab:CreateParagraph({
-    Title   = "Active License",
-    Content = getLicenseInfoContent(),
-})
-_G.ChiroLicenseParagraph = LicenseParagraph
-
--- Continuously refresh the paragraph content every second so the countdown ticks dynamically!
-task.spawn(function()
-    while ScreenGui and ScreenGui.Parent do
-        task.wait(1.0)
-        pcall(function()
-            local targetPara = _G.ChiroLicenseParagraph or LicenseParagraph
-            if targetPara and targetPara.SetContent then
-                targetPara:SetContent(getLicenseInfoContent())
-            end
-        end)
-    end
-end)
 
 -- Select MainTab on launch so user sees sections and controls immediately
 task.defer(function()
