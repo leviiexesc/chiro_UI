@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 --  CHIRO UI v8.0  |  GAME HUB, JOB ID JOINER & ENHANCED INPUTS
 --  Features:
 --    1. Topbar System Info:
@@ -2411,8 +2411,10 @@ function Chiro:CreateWindow(cfg)
             return
         end
 
-        -- Priority 1: Check getgenv().Key (injected externally by loader script)
-        local envKey = (getgenv and getgenv().Key) or nil
+        -- Priority 1: Check getgenv().Key / _G.Key (injected externally by loader script)
+        local envKey = (typeof(getgenv) == "function" and getgenv().Key)
+                    or _G.Key
+                    or nil
         if envKey and tostring(envKey) ~= "" and tostring(envKey) ~= "lisence key" then
             StatusTicker.Text = "VERIFYING LOADER KEY..."
             local ok, info = verifyLicenseKey(tostring(envKey))
