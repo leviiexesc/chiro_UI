@@ -8,7 +8,7 @@ databases:
     databaseName: chiro_licenses
     user: chiro_user
     plan: free
-    region: oregon
+    region: singapore
     ipAllowList: [] # Only internal Render connections
 
 services:
@@ -16,7 +16,7 @@ services:
     name: chiro-license-center
     runtime: node
     plan: free
-    region: oregon
+    region: singapore
     buildCommand: npm install --include=dev && npm --prefix client install --include=dev && npm run build && npx prisma db push && npm run prisma:seed
     startCommand: npm start
     healthCheckPath: /api/v1/health
@@ -42,3 +42,5 @@ services:
         value: admin@chiro.local
       - key: INITIAL_ADMIN_PASSWORD
         value: ChangeThisSecurePassword2026!
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
