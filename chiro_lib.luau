@@ -2101,15 +2101,34 @@ function Chiro:CreateWindow(cfg)
     local keyConfig = cfg.KeySystem or { Enabled = false }
     keyConfig.ApiBase = activeApiBase
 
+    -- Support product slug configuration for tier gating (e.g. "chiro-free-key")
+    local rawProductSlug = (cfg.KeySystem and (cfg.KeySystem.ProductSlug or cfg.KeySystem.Slug or cfg.KeySystem.productSlug or cfg.KeySystem.slug))
+        or cfg.ProductSlug
+        or cfg.Slug
+        or cfg.productSlug
+        or cfg.slug
+        or (typeof(getgenv) == "function" and (getgenv().ProductSlug or getgenv().Slug or getgenv().productSlug))
+        or _G.ProductSlug
+        or _G.Slug
+        or nil
+
+    if rawProductSlug and tostring(rawProductSlug) ~= "" then
+        keyConfig.ProductSlug = tostring(rawProductSlug)
+    end
+
     local function verifyLicenseKey(keyToTest)
         local hwidVal = getHWID()
         local url = keyConfig.ApiBase .. "/verify"
-        local payload = HttpService:JSONEncode({
+        local reqPayload = {
             key = keyToTest,
             hwid = hwidVal,
             placeId = CurrentPlaceId,
             jobId = CurrentJobId,
-        })
+        }
+        if keyConfig.ProductSlug and keyConfig.ProductSlug ~= "" then
+            reqPayload.productSlug = keyConfig.ProductSlug
+        end
+        local payload = HttpService:JSONEncode(reqPayload)
         local res = httpRequest({
             Url = url,
             Method = "POST",
@@ -2121,6 +2140,14 @@ function Chiro:CreateWindow(cfg)
             local data = nil
             pcall(function() data = HttpService:JSONDecode(res.Body or res.body or "") end)
             if data and data.success then
+                if keyConfig.ProductSlug and keyConfig.ProductSlug ~= "" then
+                    local prod = data.data and (data.data.product or data.data.Product)
+                    if prod and prod.slug then
+                        if string.lower(tostring(prod.slug)) ~= string.lower(tostring(keyConfig.ProductSlug)) then
+                            return false, "Key is for " .. tostring(prod.name or prod.slug) .. " (Requires " .. tostring(keyConfig.ProductSlug) .. ")"
+                        end
+                    end
+                end
                 return true, data.data
             end
         end
@@ -2138,6 +2165,14 @@ function Chiro:CreateWindow(cfg)
             local actData = nil
             pcall(function() actData = HttpService:JSONDecode(actRes.Body or actRes.body or "") end)
             if actData and actData.success then
+                if keyConfig.ProductSlug and keyConfig.ProductSlug ~= "" then
+                    local prod = actData.data and (actData.data.product or actData.data.Product)
+                    if prod and prod.slug then
+                        if string.lower(tostring(prod.slug)) ~= string.lower(tostring(keyConfig.ProductSlug)) then
+                            return false, "Key is for " .. tostring(prod.name or prod.slug) .. " (Requires " .. tostring(keyConfig.ProductSlug) .. ")"
+                        end
+                    end
+                end
                 return true, actData.data
             end
         end
@@ -2247,8 +2282,9 @@ function Chiro:CreateWindow(cfg)
                         isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
                     }
                     startLicenseWatchdog(resolvedKey, info)
+                    local prodTitle = (keyConfig.ProductSlug and (" [" .. string.upper(keyConfig.ProductSlug) .. "]")) or ""
                     Chiro:Notify({
-                        Title   = "LICENSE ACTIVE",
+                        Title   = "LICENSE ACTIVE" .. prodTitle,
                         Content = "Authenticated via Cloud License API. HWID bound.",
                         Kind    = "success",
                         Duration = 4,
@@ -2294,7 +2330,11 @@ function Chiro:CreateWindow(cfg)
             KSub.Position = UDim2.new(0, 15, 0, 46)
             KSub.BackgroundTransparency = 1
             KSub.Font = Enum.Font.Gotham
-            KSub.Text = "Enter your license key to unlock this script"
+            if keyConfig.ProductSlug and tostring(keyConfig.ProductSlug) ~= "" then
+                KSub.Text = "Requires product: " .. tostring(keyConfig.ProductSlug)
+            else
+                KSub.Text = "Enter your license key to unlock this script"
+            end
             KSub.TextColor3 = currentTheme.TextMuted
             KSub.TextSize = 11
             KSub.ZIndex = 8502
@@ -2375,8 +2415,9 @@ function Chiro:CreateWindow(cfg)
                         quickTween(KeyModal, 0.25, { BackgroundTransparency = 1 })
                         quickTween(KCard, 0.25, { BackgroundTransparency = 1 })
                         task.delay(0.3, function() KeyModal:Destroy() end)
+                        local prodTitle = (keyConfig.ProductSlug and (" [" .. string.upper(keyConfig.ProductSlug) .. "]")) or ""
                         Chiro:Notify({
-                            Title   = "LICENSE UNLOCKED",
+                            Title   = "LICENSE UNLOCKED" .. prodTitle,
                             Content = "Welcome to Chiro UI.",
                             Kind    = "success",
                             Duration = 4,

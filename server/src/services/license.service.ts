@@ -186,7 +186,7 @@ export class LicenseService {
    * Client Verification Endpoint logic
    * Checks license key, expiration, revocation, and HWID binding.
    */
-  public static async verifyClientLicense(key: string, hwid: string, ipAddress?: string, userAgent?: string) {
+  public static async verifyClientLicense(key: string, hwid: string, ipAddress?: string, userAgent?: string, productSlug?: string) {
     const cleanedKey = key.toUpperCase().trim();
     const cleanedHWID = hwid.trim();
 
@@ -207,6 +207,14 @@ export class LicenseService {
 
     if (!license) {
       throw new AppError("INVALID_LICENSE", "The license key is invalid.", 404);
+    }
+
+    // Check product slug match if specified
+    if (productSlug && license.product && license.product.slug.toLowerCase() !== productSlug.toLowerCase()) {
+      throw new ForbiddenError(
+        `License key belongs to '${license.product.name}' (${license.product.slug}), not '${productSlug}'.`,
+        "PRODUCT_MISMATCH"
+      );
     }
 
     // Check status: REVOKED
@@ -232,12 +240,12 @@ export class LicenseService {
     if (!boundDevice) {
       // If UNUSED, automatically bind this first device
       if (license.status === LicenseStatus.UNUSED) {
-        return await this.activateClientLicense(cleanedKey, cleanedHWID, ipAddress, userAgent);
+        return await this.activateClientLicense(cleanedKey, cleanedHWID, ipAddress, userAgent, productSlug);
       }
 
       // If ACTIVE, check if it can bind a new device within maxDevices limit
       if (license.devices.length < license.maxDevices) {
-        return await this.activateClientLicense(cleanedKey, cleanedHWID, ipAddress, userAgent);
+        return await this.activateClientLicense(cleanedKey, cleanedHWID, ipAddress, userAgent, productSlug);
       }
 
       // Otherwise, HWID mismatch / device limit reached
@@ -282,7 +290,7 @@ export class LicenseService {
   /**
    * Client Activation Endpoint logic
    */
-  public static async activateClientLicense(key: string, hwid: string, ipAddress?: string, userAgent?: string) {
+  public static async activateClientLicense(key: string, hwid: string, ipAddress?: string, userAgent?: string, productSlug?: string) {
     const cleanedKey = key.toUpperCase().trim();
     const cleanedHWID = hwid.trim();
 
@@ -296,6 +304,14 @@ export class LicenseService {
 
     if (!license) {
       throw new AppError("INVALID_LICENSE", "The license key is invalid.", 404);
+    }
+
+    // Check product slug match if specified
+    if (productSlug && license.product && license.product.slug.toLowerCase() !== productSlug.toLowerCase()) {
+      throw new ForbiddenError(
+        `License key belongs to '${license.product.name}' (${license.product.slug}), not '${productSlug}'.`,
+        "PRODUCT_MISMATCH"
+      );
     }
 
     if (license.status === LicenseStatus.REVOKED) {
@@ -313,6 +329,11 @@ export class LicenseService {
         valid: true,
         activated: false,
         message: "Device already registered.",
+        product: {
+          id: license.product.id,
+          name: license.product.name,
+          slug: license.product.slug,
+        },
         license: {
           key: license.key,
           status: license.status,
@@ -374,6 +395,7 @@ export class LicenseService {
       product: {
         id: updatedLicense.product.id,
         name: updatedLicense.product.name,
+        slug: updatedLicense.product.slug,
       },
       license: {
         key: updatedLicense.key,

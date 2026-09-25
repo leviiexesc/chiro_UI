@@ -56,6 +56,13 @@ async function main() {
       defaultDurationDays: null, // Lifetime
     },
     {
+      name: "Chiro UI Free Tier",
+      slug: "chiro-free-key",
+      description: "Free community edition with standard features.",
+      maxDevices: 1,
+      defaultDurationDays: 365,
+    },
+    {
       name: "Chiro UI Developer License",
       slug: "chiro-developer",
       description: "Developer edition for script developers and hub creators with whitelist API access.",

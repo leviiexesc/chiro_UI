@@ -22,6 +22,7 @@ const verifySchema = z.object({
 const activateSchema = z.object({
   key: z.string().min(1, "License key is required"),
   hwid: z.string().min(1, "HWID is required"),
+  productSlug: z.string().optional(),
 });
 
 const resetSchema = z.object({
@@ -31,11 +32,11 @@ const resetSchema = z.object({
 // POST /api/v1/client/verify - Verify client license and HWID
 router.post("/verify", async (req, res, next) => {
   try {
-    const { key, hwid } = verifySchema.parse(req.body);
+    const { key, hwid, productSlug } = verifySchema.parse(req.body);
     const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
     const userAgent = req.headers["user-agent"] || "Luau-Client";
 
-    const result = await LicenseService.verifyClientLicense(key, hwid, ip, userAgent);
+    const result = await LicenseService.verifyClientLicense(key, hwid, ip, userAgent, productSlug);
     return sendSuccess(res, result);
   } catch (err) {
     next(err);
@@ -45,11 +46,11 @@ router.post("/verify", async (req, res, next) => {
 // POST /api/v1/client/activate - First-time or multi-device activation
 router.post("/activate", async (req, res, next) => {
   try {
-    const { key, hwid } = activateSchema.parse(req.body);
+    const { key, hwid, productSlug } = activateSchema.parse(req.body);
     const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
     const userAgent = req.headers["user-agent"] || "Luau-Client";
 
-    const result = await LicenseService.activateClientLicense(key, hwid, ip, userAgent);
+    const result = await LicenseService.activateClientLicense(key, hwid, ip, userAgent, productSlug);
     return sendSuccess(res, result);
   } catch (err) {
     next(err);

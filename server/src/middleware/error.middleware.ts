@@ -12,7 +12,7 @@ export function errorHandler(
   next: NextFunction
 ) {
   // 1. AppError (our typed business errors)
-  if (err instanceof AppError) {
+  if (err instanceof AppError || err?.name === "AppError" || (typeof err?.statusCode === "number" && err?.code)) {
     return sendError(res, err.code, err.message, err.statusCode, err.details);
   }
 
