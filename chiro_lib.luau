@@ -2116,6 +2116,10 @@ function Chiro:CreateWindow(cfg)
         keyConfig.ProductSlug = tostring(rawProductSlug)
     end
 
+    if keyConfig.Enabled then
+        MainFrame.Visible = false
+    end
+
     local function verifyLicenseKey(keyToTest)
         local hwidVal = getHWID()
         local url = keyConfig.ApiBase .. "/verify"
@@ -2258,7 +2262,7 @@ function Chiro:CreateWindow(cfg)
         end)
     end
 
-    -- Run Key Check (Non-blocking: UI renders immediately)
+    -- Run Key Check (Execute-time enforcement: Requires getgenv().Key, outputs to console and kicks if missing/invalid)
     if keyConfig.Enabled then
         task.spawn(function()
             local envKey = (typeof(getgenv) == "function" and getgenv().Key)
@@ -2266,170 +2270,68 @@ function Chiro:CreateWindow(cfg)
                         or loadKeyFile(keyConfig.KeyFile or "chiro_license.key")
                         or nil
 
-            if envKey and tostring(envKey) ~= "" and tostring(envKey) ~= "lisence key" then
-                local ok, info = verifyLicenseKey(tostring(envKey))
-                if ok then
-                    local licObj = (type(info) == "table" and (info.license or info)) or {}
-                    local resolvedKey = tostring(licObj.key or envKey)
-                    if keyConfig.SaveKey then
-                        saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
-                    end
-                    _G.ChiroLicenseData = {
-                        key        = resolvedKey,
-                        hwid       = getHWID(),
-                        data       = info,
-                        expiresAt  = licObj.expiresAt,
-                        isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
-                    }
-                    startLicenseWatchdog(resolvedKey, info)
-                    local prodTitle = (keyConfig.ProductSlug and (" [" .. string.upper(keyConfig.ProductSlug) .. "]")) or ""
-                    Chiro:Notify({
-                        Title   = "LICENSE ACTIVE" .. prodTitle,
-                        Content = "Authenticated via Cloud License API. HWID bound.",
-                        Kind    = "success",
-                        Duration = 4,
-                    })
-                    return
+            local function logConsoleError(msg)
+                warn("[CHIRO LICENSE ERROR] " .. tostring(msg))
+                if typeof(rconsoleerr) == "function" then
+                    pcall(function() rconsoleerr("[CHIRO LICENSE ERROR] " .. tostring(msg) .. "\n") end)
+                elseif typeof(rconsoleprint) == "function" then
+                    pcall(function() rconsoleprint("@@RED@@\n[CHIRO LICENSE ERROR] " .. tostring(msg) .. "\n@@WHITE@@") end)
                 end
             end
 
-            -- If no valid key was found or verify failed, show an elegant key modal overlay
-            local KeyModal = Instance.new("Frame")
-            KeyModal.Name = "KeyModal"
-            KeyModal.Size = UDim2.new(1, 0, 1, 0)
-            KeyModal.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
-            KeyModal.BackgroundTransparency = 0.08
-            KeyModal.BorderSizePixel = 0
-            KeyModal.ZIndex = 8500
-            KeyModal.Parent = MainFrame
-            makeCorner(KeyModal, 10)
-
-            local KCard = Instance.new("Frame")
-            KCard.Size = UDim2.fromOffset(320, 200)
-            KCard.Position = UDim2.new(0.5, -160, 0.5, -100)
-            KCard.BackgroundColor3 = currentTheme.Card
-            KCard.BorderSizePixel = 0
-            KCard.ZIndex = 8501
-            KCard.Parent = KeyModal
-            makeCorner(KCard, 10)
-            makeStroke(KCard, currentTheme.Border, 1)
-
-            local KTit = Instance.new("TextLabel")
-            KTit.Size = UDim2.new(1, 0, 0, 24)
-            KTit.Position = UDim2.new(0, 0, 0, 20)
-            KTit.BackgroundTransparency = 1
-            KTit.Font = Enum.Font.GothamBold
-            KTit.Text = "LICENSE AUTHENTICATION"
-            KTit.TextColor3 = currentTheme.Text
-            KTit.TextSize = 14
-            KTit.ZIndex = 8502
-            KTit.Parent = KCard
-
-            local KSub = Instance.new("TextLabel")
-            KSub.Size = UDim2.new(1, -30, 0, 16)
-            KSub.Position = UDim2.new(0, 15, 0, 46)
-            KSub.BackgroundTransparency = 1
-            KSub.Font = Enum.Font.Gotham
-            if keyConfig.ProductSlug and tostring(keyConfig.ProductSlug) ~= "" then
-                KSub.Text = "Requires product: " .. tostring(keyConfig.ProductSlug)
-            else
-                KSub.Text = "Enter your license key to unlock this script"
-            end
-            KSub.TextColor3 = currentTheme.TextMuted
-            KSub.TextSize = 11
-            KSub.ZIndex = 8502
-            KSub.Parent = KCard
-
-            local KBoxFrame = Instance.new("Frame")
-            KBoxFrame.Size = UDim2.new(1, -40, 0, 36)
-            KBoxFrame.Position = UDim2.new(0, 20, 0, 76)
-            KBoxFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-            KBoxFrame.BorderSizePixel = 0
-            KBoxFrame.ZIndex = 8502
-            KBoxFrame.Parent = KCard
-            makeCorner(KBoxFrame, 7)
-            local kboxStroke = makeStroke(KBoxFrame, currentTheme.Border, 1)
-
-            local KInput = Instance.new("TextBox")
-            KInput.Size = UDim2.new(1, -16, 1, 0)
-            KInput.Position = UDim2.new(0, 8, 0, 0)
-            KInput.BackgroundTransparency = 1
-            KInput.Font = Enum.Font.Code
-            KInput.PlaceholderText = "CHIRO-XXXX-XXXX-XXXX"
-            KInput.PlaceholderColor3 = currentTheme.TextFaint
-            KInput.Text = ""
-            KInput.TextColor3 = currentTheme.Text
-            KInput.TextSize = 11
-            KInput.ClearTextOnFocus = false
-            KInput.ZIndex = 8503
-            KInput.Parent = KBoxFrame
-
-            local KBtn = Instance.new("TextButton")
-            KBtn.Size = UDim2.new(1, -40, 0, 32)
-            KBtn.Position = UDim2.new(0, 20, 0, 126)
-            KBtn.BackgroundColor3 = Color3.fromRGB(140, 120, 240)
-            KBtn.BorderSizePixel = 0
-            KBtn.Font = Enum.Font.GothamBold
-            KBtn.Text = "UNLOCK INTERFACE"
-            KBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            KBtn.TextSize = 11
-            KBtn.ZIndex = 8503
-            KBtn.Parent = KCard
-            makeCorner(KBtn, 7)
-
-            local KStatus = Instance.new("TextLabel")
-            KStatus.Size = UDim2.new(1, 0, 0, 16)
-            KStatus.Position = UDim2.new(0, 0, 0, 168)
-            KStatus.BackgroundTransparency = 1
-            KStatus.Font = Enum.Font.Gotham
-            KStatus.Text = ""
-            KStatus.TextColor3 = Color3.fromRGB(239, 68, 68)
-            KStatus.TextSize = 10
-            KStatus.ZIndex = 8503
-            KStatus.Parent = KCard
-
-            KBtn.MouseButton1Click:Connect(function()
-                local entered = string.gsub(KInput.Text or "", "%s+", "")
-                if entered == "" then
-                    KStatus.Text = "Please enter a key"
-                    return
-                end
-                KBtn.Text = "VERIFYING..."
-                KBtn.Active = false
-                task.spawn(function()
-                    local ok, info = verifyLicenseKey(entered)
-                    if ok then
-                        local licObj = (type(info) == "table" and (info.license or info)) or {}
-                        local resolvedKey = tostring(licObj.key or entered)
-                        if keyConfig.SaveKey then
-                            saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
-                        end
-                        _G.ChiroLicenseData = {
-                            key        = resolvedKey,
-                            hwid       = getHWID(),
-                            data       = info,
-                            expiresAt  = licObj.expiresAt,
-                            isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
-                        }
-                        startLicenseWatchdog(resolvedKey, info)
-                        quickTween(KeyModal, 0.25, { BackgroundTransparency = 1 })
-                        quickTween(KCard, 0.25, { BackgroundTransparency = 1 })
-                        task.delay(0.3, function() KeyModal:Destroy() end)
-                        local prodTitle = (keyConfig.ProductSlug and (" [" .. string.upper(keyConfig.ProductSlug) .. "]")) or ""
-                        Chiro:Notify({
-                            Title   = "LICENSE UNLOCKED" .. prodTitle,
-                            Content = "Welcome to Chiro UI.",
-                            Kind    = "success",
-                            Duration = 4,
-                        })
-                    else
-                        KBtn.Text = "UNLOCK INTERFACE"
-                        KBtn.Active = true
-                        KStatus.Text = tostring(info or "Invalid license key")
-                        quickTween(kboxStroke, 0.15, { Color = Color3.fromRGB(239, 68, 68) })
+            local function kickPlayer(reason)
+                pcall(function()
+                    if ScreenGui and ScreenGui.Parent then
+                        ScreenGui:Destroy()
                     end
                 end)
-            end)
+                task.wait(0.2)
+                if LocalPlayer and LocalPlayer.Kick then
+                    LocalPlayer:Kick(reason)
+                end
+            end
+
+            -- 1. Check if key was provided on execute
+            if not envKey or tostring(envKey) == "" or tostring(envKey) == "lisence key" or tostring(envKey) == "CHIRO-XXXXX-XXXXX-XXXX" or tostring(envKey) == "YOUR-KEY" then
+                local missingMsg = "License key is missing or not requested! Please set getgenv().Key = 'CHIRO-XXXXX-XXXXX-XXXX' before executing."
+                logConsoleError(missingMsg)
+                kickPlayer("\n\n[CHIRO LICENSE REQUIRED]\n" .. missingMsg .. "\n")
+                return
+            end
+
+            -- 2. Verify License Key via API
+            local ok, info = verifyLicenseKey(tostring(envKey))
+            if ok then
+                local licObj = (type(info) == "table" and (info.license or info)) or {}
+                local resolvedKey = tostring(licObj.key or envKey)
+                if keyConfig.SaveKey then
+                    saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
+                end
+                _G.ChiroLicenseData = {
+                    key        = resolvedKey,
+                    hwid       = getHWID(),
+                    data       = info,
+                    expiresAt  = licObj.expiresAt,
+                    isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
+                }
+                startLicenseWatchdog(resolvedKey, info)
+                MainFrame.Visible = true
+                local prodTitle = (keyConfig.ProductSlug and (" [" .. string.upper(keyConfig.ProductSlug) .. "]")) or ""
+                Chiro:Notify({
+                    Title   = "LICENSE ACTIVE" .. prodTitle,
+                    Content = "Authenticated via Cloud License API. HWID bound.",
+                    Kind    = "success",
+                    Duration = 4,
+                })
+                return
+            else
+                -- Verification failed: log to console and kick player out of the game
+                local failReason = tostring(info or "Invalid or unverified license key.")
+                local rejectedMsg = "License key rejected: " .. failReason .. " (Key: " .. tostring(envKey) .. ")"
+                logConsoleError(rejectedMsg)
+                kickPlayer("\n\n[CHIRO LICENSE REJECTED]\n" .. failReason .. "\nKey: " .. tostring(envKey) .. "\n")
+                return
+            end
         end)
     end
 
