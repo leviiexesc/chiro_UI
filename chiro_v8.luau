@@ -2155,7 +2155,7 @@ function Chiro:CreateWindow(cfg)
     LoadTitle.Size = UDim2.new(1, 0, 0, 20)
     LoadTitle.Position = UDim2.new(0, 0, 0, 68)
     LoadTitle.BackgroundTransparency = 1
-    LoadTitle.Font = Enum.Font.GothamBlack
+    LoadTitle.Font = Enum.Font.GothamBold
     LoadTitle.Text = wTitle
     LoadTitle.TextColor3 = Color3.fromRGB(245, 245, 250)
     LoadTitle.TextSize = 16

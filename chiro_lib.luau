@@ -2155,7 +2155,7 @@ function Chiro:CreateWindow(cfg)
     LoadTitle.Size = UDim2.new(1, 0, 0, 20)
     LoadTitle.Position = UDim2.new(0, 0, 0, 68)
     LoadTitle.BackgroundTransparency = 1
-    LoadTitle.Font = Enum.Font.GothamBlack
+    LoadTitle.Font = Enum.Font.GothamBold
     LoadTitle.Text = wTitle
     LoadTitle.TextColor3 = Color3.fromRGB(245, 245, 250)
     LoadTitle.TextSize = 16
@@ -2250,17 +2250,24 @@ function Chiro:CreateWindow(cfg)
     end
 
     -- License Key Verification & HWID Binding System
+    local defaultApiBase = "https://chiro-license-center.onrender.com/api/v1/client"
+    local rawApiBase = cfg.KeySystem and cfg.KeySystem.ApiBase
+    local activeApiBase = (rawApiBase and rawApiBase ~= "" and not string.find(rawApiBase, "chiro-ui.onrender.com"))
+        and rawApiBase
+        or defaultApiBase
+
     local keyConfig = cfg.KeySystem or {
         Enabled = true,
-        ApiBase = "https://chiro-ui.onrender.com/api/v1/client",
+        ApiBase = activeApiBase,
         SaveKey = true,
         KeyFile = "chiro_license.key",
         ProductSlug = "chiro-pro-cyber",
     }
+    keyConfig.ApiBase = activeApiBase
 
     local function verifyLicenseKey(keyToTest)
         local hwidVal = getHWID()
-        local url = (keyConfig.ApiBase or "https://chiro-ui.onrender.com/api/v1/client") .. "/verify"
+        local url = keyConfig.ApiBase .. "/verify"
         local payload = HttpService:JSONEncode({
             key = keyToTest,
             hwid = hwidVal,
@@ -2283,7 +2290,7 @@ function Chiro:CreateWindow(cfg)
         end
 
         -- Try activation if not yet bound
-        local actUrl = (keyConfig.ApiBase or "https://chiro-ui.onrender.com/api/v1/client") .. "/activate"
+        local actUrl = keyConfig.ApiBase .. "/activate"
         local actRes = httpRequest({
             Url = actUrl,
             Method = "POST",
@@ -2385,6 +2392,38 @@ function Chiro:CreateWindow(cfg)
     end
 
     task.spawn(function()
+        -- ── Start license verification IN PARALLEL with the progress animation ──
+        local verifyDone   = false
+        local verifyOk     = false
+        local verifyInfo   = nil
+        local verifiedKey  = nil
+
+        task.spawn(function()
+            if not keyConfig.Enabled then verifyDone = true return end
+
+            -- Priority 1: getgenv().Key / _G.Key
+            local envKey = (typeof(getgenv) == "function" and getgenv().Key)
+                        or _G.Key or nil
+            if envKey and tostring(envKey) ~= "" and tostring(envKey) ~= "lisence key" then
+                local ok, info = verifyLicenseKey(tostring(envKey))
+                if ok then
+                    verifyOk = true; verifyInfo = info; verifiedKey = tostring(envKey)
+                    verifyDone = true; return
+                end
+            end
+
+            -- Priority 2: Saved key file
+            local saved = loadKeyFile(keyConfig.KeyFile or "chiro_license.key")
+            if saved and saved ~= "" then
+                local ok, info = verifyLicenseKey(saved)
+                if ok then
+                    verifyOk = true; verifyInfo = info; verifiedKey = saved
+                end
+            end
+            verifyDone = true
+        end)
+
+        -- ── Progress bar animation (runs while verification is happening) ──
         quickTween(ProgressBarFill, loadDuration, { Size = UDim2.new(1, 0, 1, 0) }, Enum.EasingStyle.Linear)
         local startTime = os.clock()
         while (os.clock() - startTime) < loadDuration do
@@ -2396,7 +2435,7 @@ function Chiro:CreateWindow(cfg)
             elseif elapsed < 2.0 then
                 StatusTicker.Text = "RESOLVING HWID: " .. string.sub(getHWID(), 1, 14) .. "..."
             elseif elapsed < 3.2 then
-                StatusTicker.Text = "CHECKING SAVED LICENSE CREDENTIALS..."
+                StatusTicker.Text = "CHECKING LICENSE CREDENTIALS..."
             else
                 StatusTicker.Text = "VALIDATING CLOUD API STATUS..."
             end
@@ -2411,67 +2450,38 @@ function Chiro:CreateWindow(cfg)
             return
         end
 
-        -- Priority 1: Check getgenv().Key / _G.Key (injected externally by loader script)
-        local envKey = (typeof(getgenv) == "function" and getgenv().Key)
-                    or _G.Key
-                    or nil
-        if envKey and tostring(envKey) ~= "" and tostring(envKey) ~= "lisence key" then
-            StatusTicker.Text = "VERIFYING LOADER KEY..."
-            local ok, info = verifyLicenseKey(tostring(envKey))
-            if ok then
-                local licObj = (type(info) == "table" and (info.license or info)) or {}
-                local resolvedKey = tostring(licObj.key or envKey)
-                if keyConfig.SaveKey then
-                    saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
-                end
-                _G.ChiroLicenseData = {
-                    key        = resolvedKey,
-                    hwid       = getHWID(),
-                    data       = info,
-                    expiresAt  = licObj.expiresAt,
-                    isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
-                }
-                startLicenseWatchdog(resolvedKey, info)
-                StatusTicker.Text = "LICENSE VERIFIED // WELCOME"
-                task.wait(0.3)
-                dismissInWindowLoader()
-                Chiro:Notify({
-                    Title = "LICENSE ACTIVE",
-                    Content = "Authenticated via Cloud License API. HWID bound.",
-                    Kind = "success",
-                    Duration = 4,
-                })
-                return
-            end
+        -- ── Wait for verification to finish (max 12 extra seconds) ──
+        StatusTicker.Text = "CONNECTING TO LICENSE SERVER..."
+        local waitStart = os.clock()
+        while not verifyDone and (os.clock() - waitStart) < 12 do
+            task.wait(0.1)
         end
 
-        -- Priority 2: Check saved key file
-        local saved = loadKeyFile(keyConfig.KeyFile or "chiro_license.key")
-        if saved and saved ~= "" then
-            StatusTicker.Text = "VERIFYING SAVED KEY..."
-            local ok, info = verifyLicenseKey(saved)
-            if ok then
-                local licObj = (type(info) == "table" and (info.license or info)) or {}
-                local resolvedKey = tostring(licObj.key or saved)
-                _G.ChiroLicenseData = {
-                    key        = resolvedKey,
-                    hwid       = getHWID(),
-                    data       = info,
-                    expiresAt  = licObj.expiresAt,
-                    isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
-                }
-                startLicenseWatchdog(resolvedKey, info)
-                StatusTicker.Text = "LICENSE VERIFIED // WELCOME"
-                task.wait(0.3)
-                dismissInWindowLoader()
-                Chiro:Notify({
-                    Title = "LICENSE ACTIVE",
-                    Content = "Authenticated via Cloud License API. HWID bound.",
-                    Kind = "success",
-                    Duration = 4,
-                })
-                return
+        -- ── Handle result ──
+        if verifyOk and verifiedKey then
+            local licObj = (type(verifyInfo) == "table" and (verifyInfo.license or verifyInfo)) or {}
+            local resolvedKey = tostring(licObj.key or verifiedKey)
+            if keyConfig.SaveKey then
+                saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
             end
+            _G.ChiroLicenseData = {
+                key        = resolvedKey,
+                hwid       = getHWID(),
+                data       = verifyInfo,
+                expiresAt  = licObj.expiresAt,
+                isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
+            }
+            startLicenseWatchdog(resolvedKey, verifyInfo)
+            StatusTicker.Text = "LICENSE VERIFIED // WELCOME"
+            task.wait(0.3)
+            dismissInWindowLoader()
+            Chiro:Notify({
+                Title   = "LICENSE ACTIVE",
+                Content = "Authenticated via Cloud License API. HWID bound.",
+                Kind    = "success",
+                Duration = 4,
+            })
+            return
         end
 
         -- If no valid saved key, switch CenterCard to Key Input UI
