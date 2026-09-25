@@ -3869,6 +3869,19 @@ function Chiro:CreateWindow(cfg)
         return Tab
     end
 
+    -- Window Visibility & Toggle Controls
+    function Win:Toggle(state)
+        closeActiveDropdown()
+        if state ~= nil then
+            MainFrame.Visible = state
+        else
+            MainFrame.Visible = not MainFrame.Visible
+        end
+    end
+    function Win:Open()  Win:Toggle(true) end
+    function Win:Close() Win:Toggle(false) end
+    function Win:IsOpen() return MainFrame.Visible end
+
     -- Fluent Method Aliases for Window
     Win.AddTab = Win.CreateTab
     function Win:SelectTab(tabId)
@@ -3884,6 +3897,66 @@ function Chiro:CreateWindow(cfg)
             end
         end
     end
+
+    -- Built-in Settings Tab Helper (Keybind to Close/Open UI & Hide Profile)
+    function Win:BuildSettingsTab(sCfg)
+        sCfg = sCfg or {}
+        local tabName = sCfg.Name or sCfg.Title or "Settings"
+        local tabIcon = sCfg.Icon or "settings"
+
+        local SetTab = Win:CreateTab({ Name = tabName, Icon = tabIcon })
+
+        SetTab:CreateSection("Profile & Visibility")
+
+        SetTab:CreateToggle({
+            Name     = "Show Profile",
+            Icon     = "user",
+            Tag      = "PROFILE",
+            TagColor = Color3.fromRGB(59, 130, 246),
+            Default  = isProfileVisible ~= false,
+            Callback = function(show)
+                Win:SetProfileVisible(show)
+                Chiro:Notify({
+                    Title    = "PROFILE VISIBILITY",
+                    Content  = "Roblox Profile " .. (show and "Shown" or "Hidden"),
+                    Duration = 2,
+                })
+            end
+        })
+
+        SetTab:CreateSection("Keybinds & Controls")
+
+        SetTab:CreateKeybind({
+            Name     = "UI Toggle Keybind",
+            Tag      = "REBIND",
+            TagColor = Color3.fromRGB(30, 215, 96),
+            Default  = toggleKey or Enum.KeyCode.RightShift,
+            Callback = function(newKey)
+                Win:SetToggleKey(newKey)
+                Chiro:Notify({
+                    Title    = "KEYBIND UPDATED",
+                    Content  = "UI Toggle bound to: " .. tostring(newKey.Name),
+                    Kind     = "success",
+                    Duration = 3,
+                })
+            end
+        })
+
+        SetTab:CreateSection("Appearance & Theme")
+
+        SetTab:CreateDropdown({
+            Name     = "Interface Theme",
+            Icon     = "palette",
+            Options  = { "Dark", "Light" },
+            Default  = Win._themeName or "Dark",
+            Callback = function(th)
+                Win:SetTheme(th)
+            end
+        })
+
+        return SetTab
+    end
+    Win.CreateSettingsTab = Win.BuildSettingsTab
 
     return Win
 end
