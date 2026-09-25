@@ -60,7 +60,7 @@ async function main() {
       slug: "chiro-free-key",
       description: "Free community edition with standard features.",
       maxDevices: 1,
-      defaultDurationDays: 365,
+      defaultDurationDays: 1,
     },
     {
       name: "Chiro UI Developer License",

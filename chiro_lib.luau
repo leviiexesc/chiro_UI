@@ -2293,7 +2293,7 @@ function Chiro:CreateWindow(cfg)
 
             -- 1. Check if key was provided on execute
             if not envKey or tostring(envKey) == "" or tostring(envKey) == "lisence key" or tostring(envKey) == "CHIRO-XXXXX-XXXXX-XXXX" or tostring(envKey) == "YOUR-KEY" then
-                local missingMsg = "License key is missing or not requested! Please set getgenv().Key = 'CHIRO-XXXXX-XXXXX-XXXX' before executing."
+                local missingMsg = "License key is missing! Please set getgenv().Key = 'CHIRO_...' before executing.\nGet a Free 24h Key: https://chiro-license-center.onrender.com/free-key"
                 logConsoleError(missingMsg)
                 kickPlayer("\n\n[CHIRO LICENSE REQUIRED]\n" .. missingMsg .. "\n")
                 return

@@ -158,12 +158,14 @@ router.post("/free-keygen/claim", async (req, res, next) => {
       throw new AppError("PRODUCT_NOT_FOUND", "Free key product is not configured.", 500);
     }
 
-    // Generate a fresh free license key (365 day duration)
+    // Generate a fresh free license key (1 Day / 24 Hours duration) with high-security random key
+    const secureKey = LicenseService.generateSecureKey("CHIRO");
     const license = await LicenseService.createLicense({
       productId: product.id,
       maxDevices: product.maxDevices ?? 1,
-      durationDays: product.defaultDurationDays ?? 365,
-      note: `Auto-generated free key via checkpoint from IP ${ip}`,
+      durationDays: 1, // Free key expires in 1 day (24 hours)
+      customKey: secureKey,
+      note: `Auto-generated free key (1-day) via checkpoint from IP ${ip}`,
     });
 
     return sendSuccess(res, {
@@ -171,6 +173,33 @@ router.post("/free-keygen/claim", async (req, res, next) => {
       product: { name: product.name, slug: product.slug },
       expiresAt: license.expiresAt,
       message: "Your free key has been generated! Copy it and set getgenv().Key in your script.",
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const redeemSchema = z.object({
+  code: z.string().min(1, "Voucher code is required"),
+  telegramId: z.union([z.string(), z.number()]).optional(),
+  telegramUsername: z.string().optional(),
+});
+
+// POST /api/v1/client/redeem - Redeem purchase voucher into secure script key
+router.post("/redeem", async (req, res, next) => {
+  try {
+    const { code, telegramId, telegramUsername } = redeemSchema.parse(req.body);
+    const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
+
+    const result = await LicenseService.redeemVoucher(code, {
+      telegramId: telegramId ? String(telegramId) : undefined,
+      telegramUsername,
+      ipAddress: ip,
+    });
+
+    return sendSuccess(res, {
+      ...result,
+      message: "Voucher redeemed successfully! Use your new secure key in getgenv().Key.",
     });
   } catch (err) {
     next(err);

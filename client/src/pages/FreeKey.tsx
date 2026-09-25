@@ -250,7 +250,7 @@ export const FreeKey: React.FC = () => {
             </div>
             <div className="rounded-xl bg-cyan-500/5 border border-cyan-500/20 px-4 py-3 text-xs text-cyan-300 flex items-start gap-2">
               <ShieldCheck className="w-4 h-4 mt-0.5 flex-shrink-0" />
-              <span>Your key will be valid for <strong>365 days</strong> and bound to <strong>chiro-free-key</strong> product. One key per session.</span>
+              <span>Your key will be valid for <strong>24 Hours (1 Day)</strong> and bound to <strong>chiro-free-key</strong> product. One key per session.</span>
             </div>
             <button
               onClick={() => startStep(0)}

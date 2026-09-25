@@ -1,6 +1,7 @@
 import { app } from "./app.js";
 import { config } from "./config/index.js";
 import { prisma } from "./prisma.js";
+import { TelegramBotService } from "./services/telegramBot.service.js";
 
 const server = app.listen(config.PORT, () => {
   console.log(`
@@ -12,11 +13,15 @@ const server = app.listen(config.PORT, () => {
   📊 Health Check: http://localhost:${config.PORT}/api/v1/health
   ========================================================
   `);
+
+  // Initialize Telegram Bot if TELEGRAM_BOT_TOKEN is present
+  TelegramBotService.initialize();
 });
 
 // Graceful Shutdown
 const shutdown = async (signal: string) => {
   console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`);
+  TelegramBotService.stop();
   server.close(async () => {
     try {
       await prisma.$disconnect();

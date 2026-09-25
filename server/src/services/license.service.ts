@@ -24,6 +24,7 @@ export interface BatchGenerateInput {
 export class LicenseService {
   /**
    * Generates a cryptographically random license key formatted as PREFIX-XXXX-XXXX-XXXX
+   * Used for store purchase voucher codes (e.g. CHIRO-RA3H-RUEY-ESKF)
    */
   public static generateKeyString(prefix = "CHIRO", chunks = 3, chunkLen = 4): string {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Base32 without ambiguous characters (0, O, 1, I)
@@ -39,6 +40,16 @@ export class LicenseService {
     }
 
     return parts.join("-");
+  }
+
+  /**
+   * Generates a high-entropy cryptographically secure license key (96-bit entropy)
+   * Format: PREFIX_24hex (e.g. CHIRO_7d672a9d2743ddd3b50c2710)
+   * Statistically impossible to brute-force or guess by humans or AI.
+   */
+  public static generateSecureKey(prefix = "CHIRO"): string {
+    const hex = crypto.randomBytes(12).toString("hex").toLowerCase();
+    return `${prefix.toUpperCase().trim()}_${hex}`;
   }
 
   /**
@@ -509,5 +520,101 @@ export class LicenseService {
     });
 
     return updated;
+  }
+
+  /**
+   * Redeems a store purchase voucher code (e.g. CHIRO-RA3H-RUEY-ESKF)
+   * into a high-security random script key (e.g. CHIRO_7d672a9d2743ddd3b50c2710)
+   */
+  public static async redeemVoucher(
+    voucherCode: string,
+    redeemerInfo?: { telegramId?: string | number; telegramUsername?: string; ipAddress?: string }
+  ) {
+    const cleanedCode = voucherCode.trim();
+    if (!cleanedCode) {
+      throw new AppError("INVALID_CODE", "Please provide a valid voucher code.", 400);
+    }
+
+    // Look up the purchase license by voucher code (case-insensitive)
+    const license = await prisma.license.findFirst({
+      where: {
+        key: {
+          equals: cleanedCode,
+          mode: "insensitive",
+        },
+      },
+      include: {
+        product: true,
+      },
+    });
+
+    if (!license) {
+      throw new NotFoundError(
+        "Voucher code not found. Please verify your purchase receipt or key.",
+        "VOUCHER_NOT_FOUND"
+      );
+    }
+
+    if (license.status === LicenseStatus.REVOKED) {
+      throw new ForbiddenError("This license voucher has been revoked.", "VOUCHER_REVOKED");
+    }
+
+    if (license.status === LicenseStatus.EXPIRED) {
+      throw new ForbiddenError("This license voucher has already expired.", "VOUCHER_EXPIRED");
+    }
+
+    // Check if this key was already redeemed into a secure key
+    if (license.key.includes("_") && license.note && license.note.includes("Redeemed from")) {
+      throw new ForbiddenError("This purchase key has already been redeemed.", "ALREADY_REDEEMED");
+    }
+
+    // Generate the high-security random key (CHIRO_7d672a9d2743ddd3b50c2710)
+    let newSecureKey = this.generateSecureKey("CHIRO");
+    while (await prisma.license.findUnique({ where: { key: newSecureKey } })) {
+      newSecureKey = this.generateSecureKey("CHIRO");
+    }
+
+    const tgName = redeemerInfo?.telegramUsername ? `@${redeemerInfo.telegramUsername}` : "";
+    const tgId = redeemerInfo?.telegramId ? `ID:${redeemerInfo.telegramId}` : "";
+    const redeemerStr = [tgName, tgId].filter(Boolean).join(" ");
+
+    const updatedLicense = await prisma.license.update({
+      where: { id: license.id },
+      data: {
+        key: newSecureKey,
+        customerName: redeemerStr || license.customerName || "Telegram User",
+        note: `Redeemed from voucher: ${license.key} | Redeemed at: ${new Date().toISOString()}${redeemerStr ? ` by ${redeemerStr}` : ""}`,
+      },
+      include: {
+        product: true,
+      },
+    });
+
+    await AuditService.log({
+      action: "VOUCHER_REDEEMED",
+      targetType: "License",
+      targetId: updatedLicense.id,
+      ipAddress: redeemerInfo?.ipAddress,
+      details: {
+        originalVoucher: license.key,
+        newSecureKey: updatedLicense.key,
+        product: updatedLicense.product.name,
+        redeemedBy: redeemerStr,
+      },
+    });
+
+    return {
+      redeemed: true,
+      originalVoucher: license.key,
+      key: updatedLicense.key,
+      product: {
+        id: updatedLicense.product.id,
+        name: updatedLicense.product.name,
+        slug: updatedLicense.product.slug,
+      },
+      durationDays: updatedLicense.product.defaultDurationDays,
+      maxDevices: updatedLicense.maxDevices,
+      expiresAt: updatedLicense.expiresAt,
+    };
   }
 }
