@@ -8,6 +8,7 @@ import { Products } from './pages/Products';
 import { Devices } from './pages/Devices';
 import { AuditLogs } from './pages/AuditLogs';
 import { Settings } from './pages/Settings';
+import { FreeKey } from './pages/FreeKey';
 import { useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
@@ -20,6 +21,11 @@ export const App: React.FC = () => {
   // Modal control state lifted here so Topbar quick-actions work across pages
   const [createLicenseOpen, setCreateLicenseOpen] = useState(false);
   const [batchLicenseOpen, setBatchLicenseOpen] = useState(false);
+
+  // === Public route: /free-key - no login required ===
+  if (window.location.pathname === '/free-key') {
+    return <FreeKey />;
+  }
 
   if (loading) {
     return (
@@ -115,3 +121,4 @@ export const App: React.FC = () => {
     </div>
   );
 };
+
