@@ -2090,179 +2090,15 @@ function Chiro:CreateWindow(cfg)
     end)
 
     -- ============================================================
+    --  LICENSE KEY & HWID SYSTEM (Non-blocking & Seamless)
     -- ============================================================
-    --  IN-WINDOW TAB LOADER
-    -- ============================================================
-    -- ============================================================
-    -- ============================================================
-    --  WEBSITE PRELOADER SCREEN (Full Window Brand Splash Loader)
-    -- ============================================================
-    local InWindowLoader = Instance.new("Frame")
-    InWindowLoader.Name = "InWindowLoader"
-    InWindowLoader.Size = UDim2.new(1, 0, 1, 0)
-    InWindowLoader.Position = UDim2.new(0, 0, 0, 0)
-    InWindowLoader.BackgroundColor3 = currentTheme.BG
-    InWindowLoader.BorderSizePixel = 0
-    InWindowLoader.ZIndex = 8200
-    InWindowLoader.Parent = MainFrame
-    makeCorner(InWindowLoader, 10)
-
-    local CenterCard = Instance.new("Frame")
-    CenterCard.Size = UDim2.fromOffset(280, 180)
-    CenterCard.Position = UDim2.new(0.5, -140, 0.5, -90)
-    CenterCard.BackgroundTransparency = 1
-    CenterCard.ZIndex = 8201
-    CenterCard.Parent = InWindowLoader
-
-    -- Glowing Brand Icon Container
-    local LogoBadge = Instance.new("Frame")
-    LogoBadge.Size = UDim2.fromOffset(52, 52)
-    LogoBadge.Position = UDim2.new(0.5, -26, 0, 8)
-    LogoBadge.BackgroundColor3 = Color3.fromRGB(18, 18, 26)
-    LogoBadge.BorderSizePixel = 0
-    LogoBadge.ZIndex = 8202
-    LogoBadge.Parent = CenterCard
-    makeCorner(LogoBadge, 14)
-
-    local lStroke = makeStroke(LogoBadge, Color3.fromRGB(70, 70, 95), 1.5)
-    local lGrad = Instance.new("UIGradient")
-    lGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(140, 120, 240)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(34, 197, 94)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(140, 120, 240)),
-    })
-    lGrad.Parent = lStroke
-
-    local lRot = 0
-    local lConn = RunService.RenderStepped:Connect(function(dt)
-        if LogoBadge and LogoBadge.Parent then
-            lRot = (lRot + dt * 65) % 360
-            lGrad.Rotation = lRot
-        end
-    end)
-
-    local LogoIcon = Instance.new("ImageLabel")
-    LogoIcon.Size = UDim2.fromOffset(28, 28)
-    LogoIcon.Position = UDim2.new(0.5, -14, 0.5, -14)
-    LogoIcon.BackgroundTransparency = 1
-    LogoIcon.Image = resolvedLogo or LucideIcons["lucide-sparkles"] or LucideIcons["lucide-zap"]
-    LogoIcon.ImageColor3 = Color3.fromRGB(240, 240, 250)
-    LogoIcon.ScaleType = Enum.ScaleType.Fit
-    LogoIcon.ZIndex = 8203
-    LogoIcon.Parent = LogoBadge
-
-    local LoadTitle = Instance.new("TextLabel")
-    LoadTitle.Size = UDim2.new(1, 0, 0, 20)
-    LoadTitle.Position = UDim2.new(0, 0, 0, 68)
-    LoadTitle.BackgroundTransparency = 1
-    LoadTitle.Font = Enum.Font.GothamBold
-    LoadTitle.Text = wTitle
-    LoadTitle.TextColor3 = Color3.fromRGB(245, 245, 250)
-    LoadTitle.TextSize = 16
-    LoadTitle.ZIndex = 8202
-    LoadTitle.Parent = CenterCard
-
-    local LoadSub = Instance.new("TextLabel")
-    LoadSub.Size = UDim2.new(1, 0, 0, 14)
-    LoadSub.Position = UDim2.new(0, 0, 0, 90)
-    LoadSub.BackgroundTransparency = 1
-    LoadSub.Font = Enum.Font.GothamBold
-    LoadSub.Text = string.upper(wSub)
-    LoadSub.TextColor3 = Color3.fromRGB(140, 120, 240)
-    LoadSub.TextSize = 9
-    LoadSub.ZIndex = 8202
-    LoadSub.Parent = CenterCard
-
-    -- Web Loading Progress Track
-    local ProgressBarTrack = Instance.new("Frame")
-    ProgressBarTrack.Size = UDim2.new(0, 220, 0, 4)
-    ProgressBarTrack.Position = UDim2.new(0.5, -110, 0, 116)
-    ProgressBarTrack.BackgroundColor3 = Color3.fromRGB(24, 24, 34)
-    ProgressBarTrack.BorderSizePixel = 0
-    ProgressBarTrack.ZIndex = 8202
-    ProgressBarTrack.Parent = CenterCard
-    makeCorner(ProgressBarTrack, 2)
-
-    local ProgressBarFill = Instance.new("Frame")
-    ProgressBarFill.Size = UDim2.new(0, 0, 1, 0)
-    ProgressBarFill.BackgroundColor3 = Color3.fromRGB(140, 120, 240)
-    ProgressBarFill.BorderSizePixel = 0
-    ProgressBarFill.ZIndex = 8203
-    ProgressBarFill.Parent = ProgressBarTrack
-    makeCorner(ProgressBarFill, 2)
-
-    local pGrad = Instance.new("UIGradient")
-    pGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(140, 120, 240)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(34, 197, 94)),
-    })
-    pGrad.Parent = ProgressBarFill
-
-    -- Status Ticker & Percent Counter
-    local StatusTicker = Instance.new("TextLabel")
-    StatusTicker.Size = UDim2.new(0, 170, 0, 14)
-    StatusTicker.Position = UDim2.new(0.5, -110, 0, 126)
-    StatusTicker.BackgroundTransparency = 1
-    StatusTicker.Font = Enum.Font.Code
-    StatusTicker.Text = "INITIALIZING SYSTEM..."
-    StatusTicker.TextColor3 = Color3.fromRGB(120, 120, 135)
-    StatusTicker.TextSize = 9
-    StatusTicker.TextXAlignment = Enum.TextXAlignment.Left
-    StatusTicker.ZIndex = 8202
-    StatusTicker.Parent = CenterCard
-
-    local PercentLbl = Instance.new("TextLabel")
-    PercentLbl.Size = UDim2.new(0, 46, 0, 14)
-    PercentLbl.Position = UDim2.new(0.5, 64, 0, 126)
-    PercentLbl.BackgroundTransparency = 1
-    PercentLbl.Font = Enum.Font.GothamBold
-    PercentLbl.Text = "0%"
-    PercentLbl.TextColor3 = Color3.fromRGB(34, 197, 94)
-    PercentLbl.TextSize = 9
-    PercentLbl.TextXAlignment = Enum.TextXAlignment.Right
-    PercentLbl.ZIndex = 8202
-    PercentLbl.Parent = CenterCard
-
-    -- Web Loading Simulation & Cloud License Key Verification
-    local loadDuration = 4.0
-    local dismissed = false
-    local function dismissInWindowLoader()
-        if dismissed then return end
-        dismissed = true
-        if lConn then lConn:Disconnect() end
-        -- Fade all descendants first so nothing lingers visible
-        for _, child in ipairs(InWindowLoader:GetDescendants()) do
-            if child:IsA("Frame") or child:IsA("ImageLabel") then
-                pcall(function() quickTween(child, 0.35, { BackgroundTransparency = 1 }) end)
-            elseif child:IsA("TextLabel") then
-                pcall(function() quickTween(child, 0.35, { TextTransparency = 1 }) end)
-            elseif child:IsA("UIStroke") then
-                pcall(function() quickTween(child, 0.35, { Transparency = 1 }) end)
-            end
-        end
-        quickTween(InWindowLoader, 0.35, { BackgroundTransparency = 1 })
-        task.delay(0.4, function()
-            if InWindowLoader and InWindowLoader.Parent then
-                InWindowLoader.Visible = false
-                InWindowLoader:Destroy()
-            end
-        end)
-    end
-
-    -- License Key Verification & HWID Binding System
     local defaultApiBase = "https://chiro-license-center.onrender.com/api/v1/client"
     local rawApiBase = cfg.KeySystem and cfg.KeySystem.ApiBase
     local activeApiBase = (rawApiBase and rawApiBase ~= "" and not string.find(rawApiBase, "chiro-ui.onrender.com"))
         and rawApiBase
         or defaultApiBase
 
-    local keyConfig = cfg.KeySystem or {
-        Enabled = true,
-        ApiBase = activeApiBase,
-        SaveKey = true,
-        KeyFile = "chiro_license.key",
-        ProductSlug = "chiro-pro-cyber",
-    }
+    local keyConfig = cfg.KeySystem or { Enabled = false }
     keyConfig.ApiBase = activeApiBase
 
     local function verifyLicenseKey(keyToTest)
@@ -2281,9 +2117,9 @@ function Chiro:CreateWindow(cfg)
             Body = payload,
         })
 
-        if res and (res.StatusCode == 200 or res.Success) then
+        if res then
             local data = nil
-            pcall(function() data = HttpService:JSONDecode(res.Body) end)
+            pcall(function() data = HttpService:JSONDecode(res.Body or res.body or "") end)
             if data and data.success then
                 return true, data.data
             end
@@ -2298,9 +2134,9 @@ function Chiro:CreateWindow(cfg)
             Body = payload,
         })
 
-        if actRes and (actRes.StatusCode == 200 or actRes.Success) then
+        if actRes then
             local actData = nil
-            pcall(function() actData = HttpService:JSONDecode(actRes.Body) end)
+            pcall(function() actData = HttpService:JSONDecode(actRes.Body or actRes.body or "") end)
             if actData and actData.success then
                 return true, actData.data
             end
@@ -2308,14 +2144,13 @@ function Chiro:CreateWindow(cfg)
 
         local errMsg = "License key is invalid or revoked."
         pcall(function()
-            local d = HttpService:JSONDecode(res and res.Body or actRes and actRes.Body or "")
+            local d = HttpService:JSONDecode(res and (res.Body or res.body) or actRes and (actRes.Body or actRes.body) or "")
             if d and d.error and d.error.message then
                 errMsg = d.error.message
             end
         end)
         return false, errMsg
     end
-
 
     -- Background Watchdog: Auto-kicks from game when license expires or is revoked on server
     local watchdogActive = false
@@ -2336,13 +2171,12 @@ function Chiro:CreateWindow(cfg)
                 local expIso = currentLic.expiresAt or currentData.expiresAt or initialExpiresAt
                 local isLife = currentLic.isLifetime or currentData.isLifetime or (expIso == nil or expIso == "")
 
-                -- 1. Local Timestamp Expiration Check (fires instantly when duration runs out)
+                -- 1. Local Timestamp Expiration Check
                 if not isLife and expIso and expIso ~= "" then
                     local expUnix = parseIsoTimestamp(expIso)
                     if expUnix then
                         local diff = expUnix - os.time()
                         if diff <= 0 then
-                            -- EXPIRED! Destroy UI and kick player from game immediately
                             pcall(function()
                                 if ScreenGui and ScreenGui.Parent then
                                     ScreenGui:Destroy()
@@ -2357,13 +2191,12 @@ function Chiro:CreateWindow(cfg)
                     end
                 end
 
-                -- 2. Server Heartbeat Check every 25 seconds (detects admin revocation & remote expiry)
+                -- 2. Server Heartbeat Check every 25 seconds
                 if (os.clock() - lastHeartbeat) >= 25 then
                     lastHeartbeat = os.clock()
                     task.spawn(function()
                         local ok, checkInfo = verifyLicenseKey(validKey)
                         if not ok then
-                            -- Expired or revoked on server! Kick immediately
                             pcall(function()
                                 if ScreenGui and ScreenGui.Parent then
                                     ScreenGui:Destroy()
@@ -2374,7 +2207,6 @@ function Chiro:CreateWindow(cfg)
                                 LocalPlayer:Kick("\n\n[CHIRO UI — LICENSE EXPIRED / REVOKED]\nAccess Denied: " .. tostring(checkInfo or "License is no longer active.") .. "\n")
                             end
                         else
-                            -- Update cached license data with fresh server info
                             if checkInfo then
                                 local freshLic = (type(checkInfo) == "table" and (checkInfo.license or checkInfo)) or {}
                                 if _G.ChiroLicenseData then
@@ -2391,208 +2223,174 @@ function Chiro:CreateWindow(cfg)
         end)
     end
 
-    task.spawn(function()
-        -- ── Start license verification IN PARALLEL with the progress animation ──
-        local verifyDone   = false
-        local verifyOk     = false
-        local verifyInfo   = nil
-        local verifiedKey  = nil
-
+    -- Run Key Check (Non-blocking: UI renders immediately)
+    if keyConfig.Enabled then
         task.spawn(function()
-            if not keyConfig.Enabled then verifyDone = true return end
-
-            -- Priority 1: getgenv().Key / _G.Key
             local envKey = (typeof(getgenv) == "function" and getgenv().Key)
-                        or _G.Key or nil
+                        or _G.Key
+                        or loadKeyFile(keyConfig.KeyFile or "chiro_license.key")
+                        or nil
+
             if envKey and tostring(envKey) ~= "" and tostring(envKey) ~= "lisence key" then
                 local ok, info = verifyLicenseKey(tostring(envKey))
                 if ok then
-                    verifyOk = true; verifyInfo = info; verifiedKey = tostring(envKey)
-                    verifyDone = true; return
-                end
-            end
-
-            -- Priority 2: Saved key file
-            local saved = loadKeyFile(keyConfig.KeyFile or "chiro_license.key")
-            if saved and saved ~= "" then
-                local ok, info = verifyLicenseKey(saved)
-                if ok then
-                    verifyOk = true; verifyInfo = info; verifiedKey = saved
-                end
-            end
-            verifyDone = true
-        end)
-
-        -- ── Progress bar animation (runs while verification is happening) ──
-        quickTween(ProgressBarFill, loadDuration, { Size = UDim2.new(1, 0, 1, 0) }, Enum.EasingStyle.Linear)
-        local startTime = os.clock()
-        while (os.clock() - startTime) < loadDuration do
-            local elapsed = os.clock() - startTime
-            local pctVal = math.clamp(math.floor((elapsed / loadDuration) * 100), 0, 100)
-            PercentLbl.Text = tostring(pctVal) .. "%"
-            if elapsed < 1.0 then
-                StatusTicker.Text = "INITIALIZING CORE SYSTEM..."
-            elseif elapsed < 2.0 then
-                StatusTicker.Text = "RESOLVING HWID: " .. string.sub(getHWID(), 1, 14) .. "..."
-            elseif elapsed < 3.2 then
-                StatusTicker.Text = "CHECKING LICENSE CREDENTIALS..."
-            else
-                StatusTicker.Text = "VALIDATING CLOUD API STATUS..."
-            end
-            task.wait(0.04)
-        end
-        PercentLbl.Text = "100%"
-
-        if not keyConfig.Enabled then
-            StatusTicker.Text = "SYSTEM READY // WELCOME"
-            task.wait(0.25)
-            dismissInWindowLoader()
-            return
-        end
-
-        -- ── Wait for verification to finish (max 12 extra seconds) ──
-        StatusTicker.Text = "CONNECTING TO LICENSE SERVER..."
-        local waitStart = os.clock()
-        while not verifyDone and (os.clock() - waitStart) < 12 do
-            task.wait(0.1)
-        end
-
-        -- ── Handle result ──
-        if verifyOk and verifiedKey then
-            local licObj = (type(verifyInfo) == "table" and (verifyInfo.license or verifyInfo)) or {}
-            local resolvedKey = tostring(licObj.key or verifiedKey)
-            if keyConfig.SaveKey then
-                saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
-            end
-            _G.ChiroLicenseData = {
-                key        = resolvedKey,
-                hwid       = getHWID(),
-                data       = verifyInfo,
-                expiresAt  = licObj.expiresAt,
-                isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
-            }
-            startLicenseWatchdog(resolvedKey, verifyInfo)
-            StatusTicker.Text = "LICENSE VERIFIED // WELCOME"
-            task.wait(0.3)
-            dismissInWindowLoader()
-            Chiro:Notify({
-                Title   = "LICENSE ACTIVE",
-                Content = "Authenticated via Cloud License API. HWID bound.",
-                Kind    = "success",
-                Duration = 4,
-            })
-            return
-        end
-
-        -- If no valid saved key, switch CenterCard to Key Input UI
-        StatusTicker.Text = "AUTHENTICATION REQUIRED"
-        StatusTicker.TextColor3 = Color3.fromRGB(245, 158, 11)
-        quickTween(ProgressBarFill, 0.2, { BackgroundColor3 = Color3.fromRGB(245, 158, 11) })
-
-        -- Build interactive Key System inside CenterCard
-        local KeyBoxFrame = Instance.new("Frame")
-        KeyBoxFrame.Size = UDim2.new(0, 240, 0, 36)
-        KeyBoxFrame.Position = UDim2.new(0.5, -120, 0, 146)
-        KeyBoxFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
-        KeyBoxFrame.BorderSizePixel = 0
-        KeyBoxFrame.ZIndex = 8205
-        KeyBoxFrame.Parent = CenterCard
-        makeCorner(KeyBoxFrame, 8)
-        local kStroke = makeStroke(KeyBoxFrame, Color3.fromRGB(60, 60, 80), 1)
-
-        local KeyInput = Instance.new("TextBox")
-        KeyInput.Size = UDim2.new(1, -16, 1, 0)
-        KeyInput.Position = UDim2.new(0, 8, 0, 0)
-        KeyInput.BackgroundTransparency = 1
-        KeyInput.Font = Enum.Font.Code
-        KeyInput.PlaceholderText = "CHIRO-XXXX-XXXX-XXXX"
-        KeyInput.PlaceholderColor3 = Color3.fromRGB(90, 90, 110)
-        KeyInput.Text = ""
-        KeyInput.TextColor3 = Color3.fromRGB(240, 240, 255)
-        KeyInput.TextSize = 10
-        KeyInput.ClearTextOnFocus = false
-        KeyInput.ZIndex = 8206
-        KeyInput.Parent = KeyBoxFrame
-
-        local SubmitBtn = Instance.new("TextButton")
-        SubmitBtn.Size = UDim2.new(0, 240, 0, 28)
-        SubmitBtn.Position = UDim2.new(0.5, -120, 0, 188)
-        SubmitBtn.BackgroundColor3 = Color3.fromRGB(140, 120, 240)
-        SubmitBtn.BorderSizePixel = 0
-        SubmitBtn.Font = Enum.Font.GothamBold
-        SubmitBtn.Text = "UNLOCK INTERFACE"
-        SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        SubmitBtn.TextSize = 10
-        SubmitBtn.AutoButtonColor = false
-        SubmitBtn.ZIndex = 8206
-        SubmitBtn.Parent = CenterCard
-        makeCorner(SubmitBtn, 7)
-
-        SubmitBtn.MouseEnter:Connect(function()
-            quickTween(SubmitBtn, 0.12, { BackgroundColor3 = Color3.fromRGB(160, 140, 255) })
-        end)
-        SubmitBtn.MouseLeave:Connect(function()
-            quickTween(SubmitBtn, 0.12, { BackgroundColor3 = Color3.fromRGB(140, 120, 240) })
-        end)
-
-        SubmitBtn.MouseButton1Click:Connect(function()
-            local enteredKey = string.gsub(KeyInput.Text or "", "%s+", "")
-            if enteredKey == "" then
-                StatusTicker.Text = "PLEASE ENTER A KEY"
-                StatusTicker.TextColor3 = Color3.fromRGB(239, 68, 68)
-                return
-            end
-
-            SubmitBtn.Text = "VERIFYING..."
-            SubmitBtn.Active = false
-            StatusTicker.Text = "CONNECTING TO LICENSE SERVER..."
-            StatusTicker.TextColor3 = Color3.fromRGB(140, 120, 240)
-
-            task.spawn(function()
-                local ok, info = verifyLicenseKey(enteredKey)
-                if ok then
                     local licObj = (type(info) == "table" and (info.license or info)) or {}
-                    local finalKey = tostring(licObj.key or enteredKey)
+                    local resolvedKey = tostring(licObj.key or envKey)
                     if keyConfig.SaveKey then
-                        saveKeyFile(keyConfig.KeyFile or "chiro_license.key", finalKey)
+                        saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
                     end
-                    -- Store license data globally for Settings display
                     _G.ChiroLicenseData = {
-                        key        = finalKey,
+                        key        = resolvedKey,
                         hwid       = getHWID(),
                         data       = info,
                         expiresAt  = licObj.expiresAt,
                         isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
                     }
-                    startLicenseWatchdog(finalKey, info)
-                    StatusTicker.Text = "ACCESS GRANTED // WELCOME"
-                    StatusTicker.TextColor3 = Color3.fromRGB(34, 197, 94)
-                    SubmitBtn.Text = "AUTHENTICATED"
-                    SubmitBtn.BackgroundColor3 = Color3.fromRGB(34, 197, 94)
-                    task.wait(0.3)
-                    dismissInWindowLoader()
+                    startLicenseWatchdog(resolvedKey, info)
                     Chiro:Notify({
-                        Title = "LICENSE UNLOCKED",
-                        Content = "Welcome to Chiro UI. Hardware session verified.",
-                        Kind = "success",
+                        Title   = "LICENSE ACTIVE",
+                        Content = "Authenticated via Cloud License API. HWID bound.",
+                        Kind    = "success",
                         Duration = 4,
                     })
-                else
-                    SubmitBtn.Text = "UNLOCK INTERFACE"
-                    SubmitBtn.Active = true
-                    StatusTicker.Text = string.upper(tostring(info or "INVALID LICENSE KEY"))
-                    StatusTicker.TextColor3 = Color3.fromRGB(239, 68, 68)
-                    quickTween(kStroke, 0.15, { Color = Color3.fromRGB(239, 68, 68) })
-                    Chiro:Notify({
-                        Title = "ACCESS DENIED",
-                        Content = tostring(info or "The provided license key is not valid."),
-                        Kind = "error",
-                        Duration = 4,
-                    })
+                    return
                 end
+            end
+
+            -- If no valid key was found or verify failed, show an elegant key modal overlay
+            local KeyModal = Instance.new("Frame")
+            KeyModal.Name = "KeyModal"
+            KeyModal.Size = UDim2.new(1, 0, 1, 0)
+            KeyModal.BackgroundColor3 = Color3.fromRGB(10, 10, 14)
+            KeyModal.BackgroundTransparency = 0.08
+            KeyModal.BorderSizePixel = 0
+            KeyModal.ZIndex = 8500
+            KeyModal.Parent = MainFrame
+            makeCorner(KeyModal, 10)
+
+            local KCard = Instance.new("Frame")
+            KCard.Size = UDim2.fromOffset(320, 200)
+            KCard.Position = UDim2.new(0.5, -160, 0.5, -100)
+            KCard.BackgroundColor3 = currentTheme.Card
+            KCard.BorderSizePixel = 0
+            KCard.ZIndex = 8501
+            KCard.Parent = KeyModal
+            makeCorner(KCard, 10)
+            makeStroke(KCard, currentTheme.Border, 1)
+
+            local KTit = Instance.new("TextLabel")
+            KTit.Size = UDim2.new(1, 0, 0, 24)
+            KTit.Position = UDim2.new(0, 0, 0, 20)
+            KTit.BackgroundTransparency = 1
+            KTit.Font = Enum.Font.GothamBold
+            KTit.Text = "LICENSE AUTHENTICATION"
+            KTit.TextColor3 = currentTheme.Text
+            KTit.TextSize = 14
+            KTit.ZIndex = 8502
+            KTit.Parent = KCard
+
+            local KSub = Instance.new("TextLabel")
+            KSub.Size = UDim2.new(1, -30, 0, 16)
+            KSub.Position = UDim2.new(0, 15, 0, 46)
+            KSub.BackgroundTransparency = 1
+            KSub.Font = Enum.Font.Gotham
+            KSub.Text = "Enter your license key to unlock this script"
+            KSub.TextColor3 = currentTheme.TextMuted
+            KSub.TextSize = 11
+            KSub.ZIndex = 8502
+            KSub.Parent = KCard
+
+            local KBoxFrame = Instance.new("Frame")
+            KBoxFrame.Size = UDim2.new(1, -40, 0, 36)
+            KBoxFrame.Position = UDim2.new(0, 20, 0, 76)
+            KBoxFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+            KBoxFrame.BorderSizePixel = 0
+            KBoxFrame.ZIndex = 8502
+            KBoxFrame.Parent = KCard
+            makeCorner(KBoxFrame, 7)
+            local kboxStroke = makeStroke(KBoxFrame, currentTheme.Border, 1)
+
+            local KInput = Instance.new("TextBox")
+            KInput.Size = UDim2.new(1, -16, 1, 0)
+            KInput.Position = UDim2.new(0, 8, 0, 0)
+            KInput.BackgroundTransparency = 1
+            KInput.Font = Enum.Font.Code
+            KInput.PlaceholderText = "CHIRO-XXXX-XXXX-XXXX"
+            KInput.PlaceholderColor3 = currentTheme.TextFaint
+            KInput.Text = ""
+            KInput.TextColor3 = currentTheme.Text
+            KInput.TextSize = 11
+            KInput.ClearTextOnFocus = false
+            KInput.ZIndex = 8503
+            KInput.Parent = KBoxFrame
+
+            local KBtn = Instance.new("TextButton")
+            KBtn.Size = UDim2.new(1, -40, 0, 32)
+            KBtn.Position = UDim2.new(0, 20, 0, 126)
+            KBtn.BackgroundColor3 = Color3.fromRGB(140, 120, 240)
+            KBtn.BorderSizePixel = 0
+            KBtn.Font = Enum.Font.GothamBold
+            KBtn.Text = "UNLOCK INTERFACE"
+            KBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            KBtn.TextSize = 11
+            KBtn.ZIndex = 8503
+            KBtn.Parent = KCard
+            makeCorner(KBtn, 7)
+
+            local KStatus = Instance.new("TextLabel")
+            KStatus.Size = UDim2.new(1, 0, 0, 16)
+            KStatus.Position = UDim2.new(0, 0, 0, 168)
+            KStatus.BackgroundTransparency = 1
+            KStatus.Font = Enum.Font.Gotham
+            KStatus.Text = ""
+            KStatus.TextColor3 = Color3.fromRGB(239, 68, 68)
+            KStatus.TextSize = 10
+            KStatus.ZIndex = 8503
+            KStatus.Parent = KCard
+
+            KBtn.MouseButton1Click:Connect(function()
+                local entered = string.gsub(KInput.Text or "", "%s+", "")
+                if entered == "" then
+                    KStatus.Text = "Please enter a key"
+                    return
+                end
+                KBtn.Text = "VERIFYING..."
+                KBtn.Active = false
+                task.spawn(function()
+                    local ok, info = verifyLicenseKey(entered)
+                    if ok then
+                        local licObj = (type(info) == "table" and (info.license or info)) or {}
+                        local resolvedKey = tostring(licObj.key or entered)
+                        if keyConfig.SaveKey then
+                            saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
+                        end
+                        _G.ChiroLicenseData = {
+                            key        = resolvedKey,
+                            hwid       = getHWID(),
+                            data       = info,
+                            expiresAt  = licObj.expiresAt,
+                            isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
+                        }
+                        startLicenseWatchdog(resolvedKey, info)
+                        quickTween(KeyModal, 0.25, { BackgroundTransparency = 1 })
+                        quickTween(KCard, 0.25, { BackgroundTransparency = 1 })
+                        task.delay(0.3, function() KeyModal:Destroy() end)
+                        Chiro:Notify({
+                            Title   = "LICENSE UNLOCKED",
+                            Content = "Welcome to Chiro UI.",
+                            Kind    = "success",
+                            Duration = 4,
+                        })
+                    else
+                        KBtn.Text = "UNLOCK INTERFACE"
+                        KBtn.Active = true
+                        KStatus.Text = tostring(info or "Invalid license key")
+                        quickTween(kboxStroke, 0.15, { Color = Color3.fromRGB(239, 68, 68) })
+                    end
+                end)
             end)
         end)
-    end)
+    end
 
 
 
@@ -2626,7 +2424,7 @@ function Chiro:CreateWindow(cfg)
     -- ============================================================
     function Win:CreateTab(tabCfg)
         tabCfg = tabCfg or {}
-        local tabName = tabCfg.Name or "Tab"
+        local tabName = tabCfg.Name or tabCfg.Title or "Tab"
         local iconId  = resolveIcon(tabCfg.Icon)
         local tabTag  = tabCfg.Tag
 
@@ -4053,7 +3851,38 @@ function Chiro:CreateWindow(cfg)
             return Card
         end
 
+        -- Fluent Method Aliases for Tab
+        Tab.AddButton      = Tab.CreateButton
+        Tab.AddToggle      = Tab.CreateToggle
+        Tab.AddSlider      = Tab.CreateSlider
+        Tab.AddDropdown    = Tab.CreateDropdown
+        Tab.AddMultiDropdown = Tab.CreateMultiDropdown
+        Tab.AddInput       = Tab.CreateInput
+        Tab.AddColorpicker = Tab.CreateColorPicker
+        Tab.AddColorPicker = Tab.CreateColorPicker
+        Tab.AddKeybind     = Tab.CreateKeybind
+        Tab.AddParagraph   = Tab.CreateParagraph
+        Tab.AddSection     = Tab.CreateSection
+        Tab.AddBanner      = Tab.CreateBanner
+        Tab.Select         = switchTab
+
         return Tab
+    end
+
+    -- Fluent Method Aliases for Window
+    Win.AddTab = Win.CreateTab
+    function Win:SelectTab(tabId)
+        if type(tabId) == "number" then
+            local t = Win.Tabs[tabId]
+            if t and t._selectTab then t._selectTab() end
+        elseif type(tabId) == "string" then
+            for _, t in ipairs(Win.Tabs) do
+                if string.lower(t.Name) == string.lower(tabId) and t._selectTab then
+                    t._selectTab()
+                    break
+                end
+            end
+        end
     end
 
     return Win
