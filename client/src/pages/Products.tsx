@@ -160,14 +160,31 @@ export const Products: React.FC = () => {
                     {p.description || 'No description provided.'}
                   </p>
                 </div>
+
+                {/* Redeem Breakdown */}
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-2.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400">Not Redeemed</span>
+                    <p className="text-base font-bold text-amber-300 mt-0.5">{p.notRedeemedCount ?? 0}</p>
+                    <span className="text-[10px] text-gray-500">Vouchers available</span>
+                  </div>
+
+                  <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-2.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400">Already Redeemed</span>
+                    <p className="text-base font-bold text-emerald-300 mt-0.5">{p.redeemedCount ?? 0}</p>
+                    <span className="text-[10px] text-gray-500">Active script keys</span>
+                  </div>
+                </div>
               </div>
 
               <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
                 <div className="text-xs font-mono text-gray-500 dark:text-gray-400">
-                  <span>Limit: </span>
+                  <span>Total: </span>
                   <span className="font-bold text-gray-800 dark:text-gray-200">
-                    {p.defaultMaxDevices} HWID{p.defaultMaxDevices > 1 ? 's' : ''}
+                    {p.licenseCount ?? 0} Keys
                   </span>
+                  <span className="mx-1.5 opacity-40">|</span>
+                  <span>{p.defaultMaxDevices} HWID{p.defaultMaxDevices > 1 ? 's' : ''}</span>
                 </div>
 
                 <div className="flex items-center gap-1">

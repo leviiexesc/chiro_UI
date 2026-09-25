@@ -28,15 +28,38 @@ router.get("/", async (req, res, next) => {
         _count: {
           select: { licenses: true },
         },
+        licenses: {
+          select: {
+            id: true,
+            key: true,
+            status: true,
+            note: true,
+          },
+        },
       },
     });
 
     return sendSuccess(
       res,
-      products.map((p) => ({
-        ...p,
-        licenseCount: p._count.licenses,
-      }))
+      products.map((p) => {
+        const notRedeemed = p.licenses.filter(
+          (l) => !l.key.includes("_") && (!l.note || !l.note.includes("Redeemed from"))
+        ).length;
+        const redeemed = p.licenses.filter(
+          (l) => l.key.includes("_") || (l.note && l.note.includes("Redeemed from"))
+        ).length;
+        const active = p.licenses.filter((l) => l.status === "ACTIVE").length;
+
+        const { licenses, ...productData } = p;
+
+        return {
+          ...productData,
+          licenseCount: p._count.licenses,
+          notRedeemedCount: notRedeemed,
+          redeemedCount: redeemed,
+          activeCount: active,
+        };
+      })
     );
   } catch (err) {
     next(err);

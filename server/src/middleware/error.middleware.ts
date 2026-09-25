@@ -12,15 +12,23 @@ export function errorHandler(
   next: NextFunction
 ) {
   // 1. AppError (our typed business errors)
-  if (err instanceof AppError || err?.name === "AppError" || (typeof err?.statusCode === "number" && err?.code)) {
-    return sendError(res, err.code, err.message, err.statusCode, err.details);
+  if (
+    err instanceof AppError ||
+    err?.name === "AppError" ||
+    err?.name === "NotFoundError" ||
+    err?.name === "ForbiddenError" ||
+    err?.name === "UnauthorizedError" ||
+    err?.name === "ConflictError" ||
+    (typeof err?.statusCode === "number" && err.statusCode >= 400 && err.statusCode < 500)
+  ) {
+    return sendError(res, err.code || "CLIENT_ERROR", err.message, err.statusCode || 400, err.details);
   }
 
   // 2. Zod Validation Errors
-  if (err instanceof ZodError) {
-    const firstIssue = err.issues[0];
-    const message = firstIssue ? `${firstIssue.path.join(".")}: ${firstIssue.message}` : "Validation failed";
-    return sendError(res, "VALIDATION_ERROR", message, 400, err.format());
+  if (err instanceof ZodError || err?.name === "ZodError" || Array.isArray(err?.issues)) {
+    const firstIssue = err.issues?.[0];
+    const message = firstIssue ? `${firstIssue.path?.join(".")}: ${firstIssue.message}` : err.message || "Validation failed";
+    return sendError(res, "VALIDATION_ERROR", message, 400, typeof err.format === "function" ? err.format() : err.issues);
   }
 
   // 3. Prisma Known Request Errors

@@ -57,9 +57,11 @@ export const Licenses: React.FC<LicensesProps> = ({
   const [search, setSearch] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [productFilter, setProductFilter] = useState<string>('');
+  const [redeemFilter, setRedeemFilter] = useState<string>('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
 
   // Modals
   const [showCreateModal, setShowCreateModal] = useState(createModalOpen);
@@ -119,6 +121,7 @@ export const Licenses: React.FC<LicensesProps> = ({
         search: search.trim() || undefined,
         status: statusFilter || undefined,
         productId: productFilter || undefined,
+        redeemStatus: redeemFilter || undefined,
       });
       setLicenses(res.licenses);
       if (res.pagination) {
@@ -129,7 +132,8 @@ export const Licenses: React.FC<LicensesProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [page, search, statusFilter, productFilter, toast]);
+  }, [page, search, statusFilter, productFilter, redeemFilter, toast]);
+
 
   useEffect(() => {
     loadProducts();
@@ -321,6 +325,19 @@ export const Licenses: React.FC<LicensesProps> = ({
           </select>
 
           <select
+            value={redeemFilter}
+            onChange={(e) => {
+              setRedeemFilter(e.target.value);
+              setPage(1);
+            }}
+            className="px-3 py-2 text-sm rounded-xl bg-gray-100 dark:bg-[#111726] border border-transparent focus:border-cyan-500/50 focus:outline-none text-gray-700 dark:text-gray-200"
+          >
+            <option value="">All Keys</option>
+            <option value="voucher">🎫 Not Redeemed</option>
+            <option value="redeemed">🔑 Already Redeemed</option>
+          </select>
+
+          <select
             value={productFilter}
             onChange={(e) => {
               setProductFilter(e.target.value);
@@ -336,6 +353,7 @@ export const Licenses: React.FC<LicensesProps> = ({
             ))}
           </select>
         </div>
+
       </div>
 
       {/* Table / List */}
@@ -388,6 +406,16 @@ export const Licenses: React.FC<LicensesProps> = ({
                             )}
                           </button>
                         </div>
+                        {/* Key type badge */}
+                        {lic.key.includes('_') ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] mt-1 px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold font-sans">
+                            🔑 SCRIPT KEY
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] mt-1 px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold font-sans">
+                            🎫 VOUCHER
+                          </span>
+                        )}
                         {lic.note ? (
                           <div className="inline-flex items-center gap-1 text-[11px] mt-1 px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-sans font-semibold max-w-[200px] truncate" title={lic.note}>
                             🏷️ {lic.note}
@@ -396,6 +424,7 @@ export const Licenses: React.FC<LicensesProps> = ({
                           <div className="text-[10px] mt-0.5 text-gray-400 dark:text-gray-500 italic">No name</div>
                         )}
                       </td>
+
 
                       <td className="py-3.5 px-4 font-medium text-gray-700 dark:text-gray-300">
                         {lic.product?.name || 'Unknown Product'}

@@ -75,6 +75,7 @@ export const api = {
     search?: string;
     status?: string;
     productId?: string;
+    redeemStatus?: string;
   } = {}): Promise<{ licenses: License[]; pagination: ApiResponse['pagination'] }> {
     const res = await apiClient.get<ApiResponse<License[]>>('/licenses', { params });
     return { licenses: res.data.data || [], pagination: res.data.pagination };

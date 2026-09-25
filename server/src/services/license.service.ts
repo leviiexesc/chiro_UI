@@ -535,18 +535,19 @@ export class LicenseService {
       throw new AppError("INVALID_CODE", "Please provide a valid voucher code.", 400);
     }
 
-    // Look up the purchase license by voucher code (case-insensitive)
-    const license = await prisma.license.findFirst({
-      where: {
-        key: {
-          equals: cleanedCode,
-          mode: "insensitive",
-        },
-      },
-      include: {
-        product: true,
-      },
+    // Look up the purchase license by voucher code using exact unique index
+    const upperCode = cleanedCode.toUpperCase();
+    let license = await prisma.license.findUnique({
+      where: { key: upperCode },
+      include: { product: true },
     });
+
+    if (!license) {
+      license = await prisma.license.findUnique({
+        where: { key: cleanedCode },
+        include: { product: true },
+      });
+    }
 
     if (!license) {
       throw new NotFoundError(

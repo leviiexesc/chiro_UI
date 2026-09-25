@@ -10,6 +10,10 @@ export interface Product {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  licenseCount?: number;
+  notRedeemedCount?: number;
+  redeemedCount?: number;
+  activeCount?: number;
   _count?: {
     licenses: number;
   };

@@ -117,6 +117,8 @@ router.get("/", async (req, res, next) => {
     const search = (req.query.search as string)?.trim();
     const status = req.query.status as LicenseStatus | undefined;
     const productId = req.query.productId as string | undefined;
+    // "voucher" = not redeemed (CHIRO-XXXX-XXXX-XXXX), "redeemed" = script key (CHIRO_xxxx)
+    const redeemStatus = req.query.redeemStatus as string | undefined;
 
     const where: Prisma.LicenseWhereInput = {};
 
@@ -126,6 +128,13 @@ router.get("/", async (req, res, next) => {
 
     if (productId) {
       where.productId = productId;
+    }
+
+    // Filter by redeem status: voucher = contains dash format, redeemed = contains underscore
+    if (redeemStatus === "voucher") {
+      where.key = { contains: "-", mode: "insensitive" };
+    } else if (redeemStatus === "redeemed") {
+      where.key = { contains: "_", mode: "insensitive" };
     }
 
     if (search) {
@@ -171,6 +180,7 @@ router.get("/", async (req, res, next) => {
     next(err);
   }
 });
+
 
 // POST /api/v1/licenses - Create single license
 router.post("/", async (req, res, next) => {
