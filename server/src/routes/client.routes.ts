@@ -28,7 +28,35 @@ const activateSchema = z.object({
 
 const resetSchema = z.object({
   key: z.string().min(1, "License key is required"),
+  telegramId: z.union([z.string(), z.number()]).optional(),
 });
+
+// GET /api/v1/client/my-keys - Retrieve keys bound to a Telegram account permanently
+router.get("/my-keys", async (req, res, next) => {
+  try {
+    const telegramId = (req.query.telegramId as string)?.trim();
+    if (!telegramId) {
+      return sendSuccess(res, []);
+    }
+    const licenses = await prisma.license.findMany({
+      where: {
+        OR: [
+          { customerName: { contains: `ID:${telegramId}` } },
+          { note: { contains: `ID:${telegramId}` } },
+        ],
+      },
+      include: {
+        product: { select: { id: true, name: true, slug: true } },
+        _count: { select: { devices: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return sendSuccess(res, licenses);
+  } catch (err) {
+    next(err);
+  }
+});
+
 
 // ================================================================
 //  FREE KEY CHECKPOINT SYSTEM
@@ -250,7 +278,7 @@ setInterval(() => {
 // POST /api/v1/client/reset-hwid - User-initiated HWID reset via key (4-day cooldown)
 router.post("/reset-hwid", async (req, res, next) => {
   try {
-    const { key } = resetSchema.parse(req.body);
+    const { key, telegramId } = resetSchema.parse(req.body);
     const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
 
     const license = await prisma.license.findUnique({ where: { key } });
@@ -258,8 +286,23 @@ router.post("/reset-hwid", async (req, res, next) => {
       throw new NotFoundError("License key not found", "INVALID_LICENSE");
     }
 
+    // ── Security Check: Telegram Account Ownership Verification ─────────────
+    // If this key was redeemed via Telegram, only that exact Telegram account can reset it!
+    const boundTgMatch = (license.customerName || license.note || "").match(/ID:(\d+)/);
+    if (boundTgMatch) {
+      const boundTgId = boundTgMatch[1];
+      if (!telegramId || String(telegramId) !== boundTgId) {
+        throw new AppError(
+          "ACCOUNT_MISMATCH",
+          "Security Protection: This key is bound to another Telegram account. You cannot reset HWID for keys you do not own.",
+          403
+        );
+      }
+    }
+
     // Enforce 4-day cooldown
     const lastReset = hwidResetCooldowns.get(key);
+
     if (lastReset) {
       const elapsed = Date.now() - lastReset;
       if (elapsed < HWID_COOLDOWN_MS) {
