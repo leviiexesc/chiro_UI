@@ -20,6 +20,17 @@ const server = app.listen(config.PORT, () => {
   } else {
     console.log("ℹ️ Embedded Telegram Bot disabled (handled by standalone Chiro-Bot service).");
   }
+
+  // 24/7 Self Keep-Alive Pinger (prevents Render instance from sleeping)
+  const selfUrl = process.env.RENDER_EXTERNAL_URL || "https://chiro-license-center.onrender.com";
+  setInterval(async () => {
+    try {
+      await fetch(`${selfUrl}/api/v1/health`);
+      console.log(`💓 [Keep-Alive] Pinged ${selfUrl}/api/v1/health`);
+    } catch {
+      // Ignore background ping errors
+    }
+  }, 8 * 60 * 1000); // Every 8 minutes
 });
 
 
