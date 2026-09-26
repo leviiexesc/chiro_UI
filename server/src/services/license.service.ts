@@ -528,7 +528,13 @@ export class LicenseService {
    */
   public static async redeemVoucher(
     voucherCode: string,
-    redeemerInfo?: { telegramId?: string | number; telegramUsername?: string; ipAddress?: string }
+    redeemerInfo?: {
+      telegramId?: string | number;
+      telegramUsername?: string;
+      discordId?: string | number;
+      discordTag?: string;
+      ipAddress?: string;
+    }
   ) {
     const cleanedCode = voucherCode.trim();
     if (!cleanedCode) {
@@ -577,19 +583,23 @@ export class LicenseService {
 
     const tgName = redeemerInfo?.telegramUsername ? `@${redeemerInfo.telegramUsername}` : "";
     const tgId = redeemerInfo?.telegramId ? `ID:${redeemerInfo.telegramId}` : "";
-    const redeemerStr = [tgName, tgId].filter(Boolean).join(" ");
+    const discName = redeemerInfo?.discordTag ? `${redeemerInfo.discordTag}` : "";
+    const discId = redeemerInfo?.discordId ? `DISCORD_ID:${redeemerInfo.discordId}` : "";
+    const redeemerStr = [tgName, tgId, discName, discId].filter(Boolean).join(" ");
 
     const updatedLicense = await prisma.license.update({
       where: { id: license.id },
       data: {
         key: newSecureKey,
-        customerName: redeemerStr || license.customerName || "Telegram User",
+        customerName: redeemerStr || license.customerName || "Customer",
+        customerDiscord: redeemerInfo?.discordId ? String(redeemerInfo.discordId) : license.customerDiscord,
         note: `Redeemed from voucher: ${license.key} | Redeemed at: ${new Date().toISOString()}${redeemerStr ? ` by ${redeemerStr}` : ""}`,
       },
       include: {
         product: true,
       },
     });
+
 
     await AuditService.log({
       action: "VOUCHER_REDEEMED",

@@ -29,7 +29,10 @@ const activateSchema = z.object({
 const resetSchema = z.object({
   key: z.string().min(1, "License key is required"),
   telegramId: z.union([z.string(), z.number()]).optional(),
+  discordId: z.union([z.string(), z.number()]).optional(),
+  cooldownHours: z.number().min(0).max(720).optional(),
 });
+
 
 // GET /api/v1/client/my-keys - Retrieve keys bound to a Telegram account permanently
 router.get("/my-keys", async (req, res, next) => {
@@ -211,19 +214,24 @@ const redeemSchema = z.object({
   code: z.string().min(1, "Voucher code is required"),
   telegramId: z.union([z.string(), z.number()]).optional(),
   telegramUsername: z.string().optional(),
+  discordId: z.union([z.string(), z.number()]).optional(),
+  discordTag: z.string().optional(),
 });
 
 // POST /api/v1/client/redeem - Redeem purchase voucher into secure script key
 router.post("/redeem", async (req, res, next) => {
   try {
-    const { code, telegramId, telegramUsername } = redeemSchema.parse(req.body);
+    const { code, telegramId, telegramUsername, discordId, discordTag } = redeemSchema.parse(req.body);
     const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
 
     const result = await LicenseService.redeemVoucher(code, {
       telegramId: telegramId ? String(telegramId) : undefined,
       telegramUsername,
+      discordId: discordId ? String(discordId) : undefined,
+      discordTag,
       ipAddress: ip,
     });
+
 
     return sendSuccess(res, {
       ...result,
@@ -278,8 +286,9 @@ setInterval(() => {
 // POST /api/v1/client/reset-hwid - User-initiated HWID reset via key (4-day cooldown)
 router.post("/reset-hwid", async (req, res, next) => {
   try {
-    const { key, telegramId } = resetSchema.parse(req.body);
+    const { key, telegramId, discordId, cooldownHours } = resetSchema.parse(req.body);
     const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
+
 
     const license = await prisma.license.findUnique({ where: { key } });
     if (!license) {
@@ -291,7 +300,7 @@ router.post("/reset-hwid", async (req, res, next) => {
     const boundTgMatch = (license.customerName || license.note || "").match(/ID:(\d+)/);
     if (boundTgMatch) {
       const boundTgId = boundTgMatch[1];
-      if (!telegramId || String(telegramId) !== boundTgId) {
+      if (telegramId && String(telegramId) !== boundTgId) {
         throw new AppError(
           "ACCOUNT_MISMATCH",
           "Security Protection: This key is bound to another Telegram account. You cannot reset HWID for keys you do not own.",
@@ -300,18 +309,47 @@ router.post("/reset-hwid", async (req, res, next) => {
       }
     }
 
-    // Enforce 4-day cooldown
+    // ── Security Check: Discord Account Ownership Verification ──────────────
+    const boundDiscordMatch = (license.customerDiscord || license.customerName || license.note || "").match(/(?:Discord|DISCORD_ID):(\d+)/);
+    if (boundDiscordMatch) {
+      const boundDiscordId = boundDiscordMatch[1];
+      if (discordId && String(discordId) !== boundDiscordId) {
+        throw new AppError(
+          "ACCOUNT_MISMATCH",
+          "Security Protection: This key is bound to another Discord account. You cannot reset HWID for keys you do not own.",
+          403
+        );
+      }
+    }
+
+    // ── Role-based Cooldown Calculation ─────────────────────────────────────
+    // cooldownHours: 0 = no cooldown (Chiro Hub VIP), 1 = admin, 24 = booster, 96 = default 4 days
+    const effectiveCooldownMs = (cooldownHours !== undefined)
+      ? cooldownHours * 60 * 60 * 1000
+      : HWID_COOLDOWN_MS;
+
     const lastReset = hwidResetCooldowns.get(key);
 
-    if (lastReset) {
+    if (lastReset && effectiveCooldownMs > 0) {
       const elapsed = Date.now() - lastReset;
-      if (elapsed < HWID_COOLDOWN_MS) {
-        const remainingMs = HWID_COOLDOWN_MS - elapsed;
+      if (elapsed < effectiveCooldownMs) {
+        const remainingMs = effectiveCooldownMs - elapsed;
         const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
         const remainingHours = Math.ceil(remainingMs / (60 * 60 * 1000));
+        const remainingMinutes = Math.ceil(remainingMs / (60 * 1000));
+
+        let waitTimeStr = "";
+        if (remainingDays > 1) {
+          waitTimeStr = `${remainingDays} days`;
+        } else if (remainingHours > 1) {
+          waitTimeStr = `${remainingHours} hours`;
+        } else {
+          waitTimeStr = `${remainingMinutes} minutes`;
+        }
+
         throw new AppError(
           "HWID_COOLDOWN",
-          `HWID reset is on cooldown. You can reset again in ${remainingDays > 1 ? remainingDays + " days" : remainingHours + " hours"}.`,
+          `HWID reset is on cooldown. You can reset again in ${waitTimeStr}.`,
           429
         );
       }
@@ -324,10 +362,13 @@ router.post("/reset-hwid", async (req, res, next) => {
 
     return sendSuccess(res, {
       message: "HWID reset successfully. You may now activate this key on a new device.",
-      cooldownDays: 4,
-      nextResetAvailable: new Date(Date.now() + HWID_COOLDOWN_MS).toISOString(),
+      cooldownHours: cooldownHours !== undefined ? cooldownHours : 96,
+      nextResetAvailable: effectiveCooldownMs > 0
+        ? new Date(Date.now() + effectiveCooldownMs).toISOString()
+        : "Immediately (No Cooldown)",
       ...result,
     });
+
   } catch (err) {
     next(err);
   }
