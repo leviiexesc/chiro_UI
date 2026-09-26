@@ -7,6 +7,7 @@ import {
   FileText, 
   Settings, 
   ShieldCheck, 
+  ShieldBan,
   X 
 } from 'lucide-react';
 
@@ -28,6 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'licenses', label: 'Licenses', icon: Key },
     { id: 'products', label: 'Products', icon: Package },
     { id: 'devices', label: 'Devices', icon: Cpu },
+    { id: 'blacklist', label: 'Blacklist', icon: ShieldBan },
     { id: 'audit-logs', label: 'Audit Logs', icon: FileText },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];

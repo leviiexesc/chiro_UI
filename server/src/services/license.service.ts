@@ -208,6 +208,18 @@ export class LicenseService {
       throw new AppError("INVALID_HWID", "Device hardware identifier is required.", 400);
     }
 
+    // Blacklist check for HWID
+    const hwidBlacklisted = await prisma.blacklist.findFirst({
+      where: { type: "HWID", value: cleanedHWID },
+    });
+    if (hwidBlacklisted) {
+      throw new ForbiddenError(
+        "This hardware identifier (HWID) has been blacklisted from using Chiro UI.",
+        "HWID_BLACKLISTED"
+      );
+    }
+
+
     // Exact key lookup, then uppercase/lowercase fallback for database case compatibility
     let license = await prisma.license.findUnique({
       where: { key: cleanedKey },
@@ -332,6 +344,21 @@ export class LicenseService {
   public static async activateClientLicense(key: string, hwid: string, ipAddress?: string, userAgent?: string, productSlug?: string) {
     const cleanedKey = key.trim();
     const cleanedHWID = hwid.trim();
+
+    if (!cleanedHWID) {
+      throw new AppError("INVALID_HWID", "Device hardware identifier is required.", 400);
+    }
+
+    // Blacklist check for HWID
+    const hwidBlacklisted = await prisma.blacklist.findFirst({
+      where: { type: "HWID", value: cleanedHWID },
+    });
+    if (hwidBlacklisted) {
+      throw new ForbiddenError(
+        "This hardware identifier (HWID) has been blacklisted from using Chiro UI.",
+        "HWID_BLACKLISTED"
+      );
+    }
 
     // Exact key lookup, then uppercase/lowercase fallback
     let license = await prisma.license.findUnique({
@@ -643,10 +670,21 @@ export class LicenseService {
     const discId = redeemerInfo?.discordId ? `DISCORD_ID:${redeemerInfo.discordId}` : "";
     const redeemerStr = [tgName, tgId, discName, discId].filter(Boolean).join(" ");
 
+    // Start duration countdown from moment of redemption
+    let newExpiresAt = license.expiresAt;
+    if (license.product?.defaultDurationDays) {
+      newExpiresAt = new Date(Date.now() + license.product.defaultDurationDays * 24 * 60 * 60 * 1000);
+    } else if (license.expiresAt) {
+      const durationMs = license.expiresAt.getTime() - license.createdAt.getTime();
+      const safeDurationMs = durationMs > 0 ? durationMs : 24 * 60 * 60 * 1000;
+      newExpiresAt = new Date(Date.now() + safeDurationMs);
+    }
+
     const updatedLicense = await prisma.license.update({
       where: { id: license.id },
       data: {
         key: newSecureKey,
+        expiresAt: newExpiresAt,
         customerName: redeemerStr || license.customerName || "Customer",
         customerDiscord: redeemerInfo?.discordId ? String(redeemerInfo.discordId) : license.customerDiscord,
         note: `Redeemed from voucher: ${license.key} | Redeemed at: ${new Date().toISOString()}${redeemerStr ? ` by ${redeemerStr}` : ""}`,

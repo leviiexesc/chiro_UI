@@ -14,6 +14,7 @@ import productRoutes from "./routes/product.routes.js";
 import deviceRoutes from "./routes/device.routes.js";
 import auditRoutes from "./routes/audit.routes.js";
 import clientRoutes from "./routes/client.routes.js";
+import blacklistRouter from "./routes/blacklist.routes.js";
 
 // __dirname is available in CommonJS (NodeNext resolves to CJS)
 
@@ -59,6 +60,7 @@ app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/devices", deviceRoutes);
 app.use("/api/v1/audit-logs", auditRoutes);
 app.use("/api/v1/client", clientRoutes);
+app.use("/api/v1/admin/blacklist", blacklistRouter);
 
 // Production Static Serving for Frontend Dashboard
 const clientBuildPath = path.resolve(__dirname, "../../client/dist");

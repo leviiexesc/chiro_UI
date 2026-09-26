@@ -109,6 +109,8 @@ const checkpointSchema = z.object({
 
 const claimSchema = z.object({
   token: z.string().min(1, "Checkpoint token is required"),
+  discordId: z.union([z.string(), z.number()]).optional(),
+  telegramId: z.union([z.string(), z.number()]).optional(),
 });
 
 // POST /api/v1/client/free-keygen/checkpoint - Advance through steps
@@ -185,8 +187,10 @@ router.post("/free-keygen/checkpoint", async (req, res, next) => {
 // POST /api/v1/client/free-keygen/claim - Generate and return a free key
 router.post("/free-keygen/claim", async (req, res, next) => {
   try {
-    const { token } = claimSchema.parse(req.body);
+    const { token, discordId, telegramId } = claimSchema.parse(req.body);
     const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
+    const discordIdStr = discordId ? String(discordId) : undefined;
+    const telegramIdStr = telegramId ? String(telegramId) : undefined;
 
     const entry = checkpointTokens.get(token);
     if (!entry) {
@@ -202,6 +206,42 @@ router.post("/free-keygen/claim", async (req, res, next) => {
       throw new AppError("IP_MISMATCH", "Checkpoint must be completed from the same IP.", 403);
     }
 
+    // ── Blacklist Check ──────────────────────────────────────────────────────
+    const blacklistChecks: any[] = [];
+    if (discordIdStr) blacklistChecks.push({ type: "DISCORD", value: discordIdStr });
+    if (telegramIdStr) blacklistChecks.push({ type: "TELEGRAM", value: telegramIdStr });
+
+    if (blacklistChecks.length > 0) {
+      const blacklisted = await prisma.blacklist.findFirst({
+        where: { OR: blacklistChecks },
+      });
+      if (blacklisted) {
+        throw new AppError(
+          "BLACKLISTED",
+          "You have been blacklisted from claiming free keys.",
+          403
+        );
+      }
+    }
+
+    // ── 1-per-account Free Key Limit ─────────────────────────────────────────
+    const alreadyClaimedChecks: any[] = [];
+    if (discordIdStr) alreadyClaimedChecks.push({ discordId: discordIdStr });
+    if (telegramIdStr) alreadyClaimedChecks.push({ telegramId: telegramIdStr });
+
+    if (alreadyClaimedChecks.length > 0) {
+      const alreadyClaimed = await prisma.freeKeyClaim.findFirst({
+        where: { OR: alreadyClaimedChecks },
+      });
+      if (alreadyClaimed) {
+        throw new AppError(
+          "ALREADY_CLAIMED",
+          "You have already claimed your free key. Each account can only claim once.",
+          403
+        );
+      }
+    }
+
     // Mark token as used immediately to prevent double-claim
     entry.used = true;
     checkpointTokens.set(token, entry);
@@ -212,21 +252,41 @@ router.post("/free-keygen/claim", async (req, res, next) => {
       throw new AppError("PRODUCT_NOT_FOUND", "Free key product is not configured.", 500);
     }
 
-    // Generate a fresh free license key (1 Day / 24 Hours duration) with high-security random key
-    const secureKey = LicenseService.generateSecureKey("CHIRO");
+    // Generate a fresh voucher key in CHIRO-XXXX-XXXX-XXXX format
+    const voucherParts = [
+      crypto.randomBytes(2).toString("hex").toUpperCase(),
+      crypto.randomBytes(2).toString("hex").toUpperCase(),
+      crypto.randomBytes(2).toString("hex").toUpperCase(),
+      crypto.randomBytes(2).toString("hex").toUpperCase(),
+    ];
+    const voucherKey = `CHIRO-${voucherParts.join("-")}`;
+
+    // Create the license using this voucher key
     const license = await LicenseService.createLicense({
       productId: product.id,
       maxDevices: product.maxDevices ?? 1,
       durationDays: 1, // Free key expires in 1 day (24 hours)
-      customKey: secureKey,
-      note: `Auto-generated free key (1-day) via checkpoint from IP ${ip}`,
+      customKey: voucherKey,
+      note: `Auto-generated free key (1-day) via checkpoint from IP ${ip}${
+        discordIdStr ? ` | Discord:${discordIdStr}` : ""
+      }${telegramIdStr ? ` | Telegram:${telegramIdStr}` : ""}`,
+    });
+
+    // Record the claim to prevent future duplicate claims
+    await prisma.freeKeyClaim.create({
+      data: {
+        discordId: discordIdStr,
+        telegramId: telegramIdStr,
+        voucherKey,
+        ip,
+      },
     });
 
     return sendSuccess(res, {
       key: license.key,
       product: { name: product.name, slug: product.slug },
       expiresAt: license.expiresAt,
-      message: "Your free key has been generated! Copy it and set getgenv().Key in your script.",
+      message: "Your free key has been generated! Redeem it with /redeem or the Redeem button in the bot.",
     });
   } catch (err) {
     next(err);

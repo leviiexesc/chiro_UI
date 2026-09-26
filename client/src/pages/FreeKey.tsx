@@ -144,10 +144,14 @@ export const FreeKey: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const discordId = urlParams.get('discordId') || undefined;
+      const telegramId = urlParams.get('telegramId') || undefined;
+
       const res = await fetch(`${API_BASE}/free-keygen/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ token, discordId, telegramId }),
       });
       const json = await res.json();
       if (!json.success) {
@@ -357,7 +361,9 @@ export const FreeKey: React.FC = () => {
 
             {/* Key display */}
             <div className="rounded-xl bg-gray-950/80 border border-gray-700 p-4">
-              <p className="text-xs text-gray-500 mb-2 font-mono uppercase tracking-widest">Your License Key</p>
+              <p className="text-xs text-gray-500 mb-2 font-mono uppercase tracking-widest">
+                {generatedKey?.startsWith('CHIRO-') ? 'Your Free 24h Voucher Code' : 'Your License Key'}
+              </p>
               <div className="flex items-center gap-3">
                 <code className="flex-1 text-cyan-300 font-mono text-base sm:text-lg font-bold tracking-widest break-all">
                   {generatedKey}
@@ -376,20 +382,19 @@ export const FreeKey: React.FC = () => {
             </div>
 
             {/* Usage instructions */}
-            <div className="rounded-xl bg-gray-800/60 border border-gray-700 p-4 space-y-2">
-              <p className="text-xs font-mono text-cyan-500 uppercase tracking-widest mb-2">How to Use</p>
-              <div className="rounded-lg bg-gray-950 p-3 font-mono text-xs text-gray-300 leading-relaxed overflow-x-auto">
-                <span className="text-gray-500">-- Set this BEFORE loading the script</span>{'\n'}
-                <span className="text-purple-400">getgenv</span>
-                <span className="text-white">().Key = </span>
-                <span className="text-green-400">"{generatedKey}"</span>{'\n\n'}
-                <span className="text-gray-500">-- Then execute your script</span>{'\n'}
-                <span className="text-purple-400">local</span>
-                <span className="text-white"> Chiro = </span>
-                <span className="text-purple-400">loadstring</span>
-                <span className="text-white">(game:HttpGet(</span>
-                <span className="text-green-400">"...chiro_lib.luau"</span>
-                <span className="text-white">))()</span>
+            <div className="rounded-xl bg-gray-800/60 border border-gray-700 p-4 space-y-3">
+              <p className="text-xs font-mono text-cyan-400 uppercase tracking-widest font-semibold">
+                🎟️ How to Redeem Your Free Key
+              </p>
+              <div className="rounded-lg bg-gray-950 p-3.5 font-mono text-xs text-gray-300 space-y-2">
+                <p className="text-sky-300 font-bold">Step 1: Copy your voucher code above</p>
+                <p className="text-gray-400">Step 2: Go to our Discord or Telegram Bot</p>
+                <p className="text-gray-400">
+                  Step 3: Click <span className="text-yellow-400 font-semibold">🎟️ Redeem Code</span> and paste your voucher
+                </p>
+                <p className="text-emerald-400 text-[11px] pt-1 border-t border-gray-800">
+                  ✓ Automatically grants your secure Roblox key + @Premium role!
+                </p>
               </div>
             </div>
 

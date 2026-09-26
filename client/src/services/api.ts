@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { ApiResponse, OverviewStats, License, Product, Device, AuditLog, AdminUser } from '../types';
+import { ApiResponse, OverviewStats, License, Product, Device, AuditLog, AdminUser, BlacklistEntry } from '../types';
 
 const API_BASE = '/api/v1';
 
@@ -189,5 +189,20 @@ export const api = {
   } = {}): Promise<{ logs: AuditLog[]; pagination: ApiResponse['pagination'] }> {
     const res = await apiClient.get<ApiResponse<AuditLog[]>>('/audit-logs', { params });
     return { logs: res.data.data || [], pagination: res.data.pagination };
+  },
+
+  // Blacklist
+  async fetchBlacklist(params?: { type?: string; search?: string }): Promise<BlacklistEntry[]> {
+    const res = await apiClient.get<ApiResponse<BlacklistEntry[]>>('/admin/blacklist', { params });
+    return res.data.data || [];
+  },
+
+  async addBlacklist(data: { type: string; value: string; reason?: string }): Promise<BlacklistEntry> {
+    const res = await apiClient.post<ApiResponse<BlacklistEntry>>('/admin/blacklist', data);
+    return res.data.data!;
+  },
+
+  async removeBlacklist(id: string): Promise<void> {
+    await apiClient.delete<ApiResponse>(`/admin/blacklist/${id}`);
   },
 };

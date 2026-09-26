@@ -116,3 +116,12 @@ export interface ApiResponse<T = any> {
     pages: number;
   };
 }
+
+export interface BlacklistEntry {
+  id: string;
+  type: 'DISCORD' | 'TELEGRAM' | 'HWID';
+  value: string;
+  reason?: string;
+  bannedBy?: string;
+  createdAt: string;
+}

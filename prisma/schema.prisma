@@ -105,3 +105,36 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
+
+enum BlacklistType {
+  DISCORD
+  TELEGRAM
+  HWID
+}
+
+model Blacklist {
+  id        String        @id @default(uuid())
+  type      BlacklistType
+  value     String        // The Discord ID, Telegram ID, or HWID value
+  reason    String?
+  bannedBy  String?       // admin username who banned
+  createdAt DateTime      @default(now())
+
+  @@unique([type, value])
+  @@index([type])
+  @@index([value])
+  @@map("blacklist")
+}
+
+model FreeKeyClaim {
+  id          String   @id @default(uuid())
+  discordId   String?  // Discord user ID
+  telegramId  String?  // Telegram user ID
+  voucherKey  String   // The generated voucher key (CHIRO-XXXX-XXXX-XXXX)
+  ip          String?
+  claimedAt   DateTime @default(now())
+
+  @@index([discordId])
+  @@index([telegramId])
+  @@map("free_key_claims")
+}
