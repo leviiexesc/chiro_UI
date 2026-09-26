@@ -198,7 +198,7 @@ export class LicenseService {
    * Checks license key, expiration, revocation, and HWID binding.
    */
   public static async verifyClientLicense(key: string, hwid: string, ipAddress?: string, userAgent?: string, productSlug?: string) {
-    const cleanedKey = key.toUpperCase().trim();
+    const cleanedKey = key.trim();
     const cleanedHWID = hwid.trim();
 
     if (!cleanedKey) {
@@ -208,7 +208,8 @@ export class LicenseService {
       throw new AppError("INVALID_HWID", "Device hardware identifier is required.", 400);
     }
 
-    const license = await prisma.license.findUnique({
+    // Exact key lookup, then uppercase/lowercase fallback for database case compatibility
+    let license = await prisma.license.findUnique({
       where: { key: cleanedKey },
       include: {
         product: true,
@@ -217,11 +218,37 @@ export class LicenseService {
     });
 
     if (!license) {
+      license = await prisma.license.findUnique({
+        where: { key: cleanedKey.toUpperCase() },
+        include: {
+          product: true,
+          devices: true,
+        },
+      });
+    }
+
+    if (!license) {
+      license = await prisma.license.findUnique({
+        where: { key: cleanedKey.toLowerCase() },
+        include: {
+          product: true,
+          devices: true,
+        },
+      });
+    }
+
+    if (!license) {
       throw new AppError("INVALID_LICENSE", "The license key is invalid.", 404);
     }
 
     // Check product slug match if specified
-    if (productSlug && license.product && license.product.slug.toLowerCase() !== productSlug.toLowerCase()) {
+    // Lifetime keys (expiresAt === null) enjoy universal VIP access across all products!
+    if (
+      productSlug &&
+      license.product &&
+      license.expiresAt !== null &&
+      license.product.slug.toLowerCase() !== productSlug.toLowerCase()
+    ) {
       throw new ForbiddenError(
         `License key belongs to '${license.product.name}' (${license.product.slug}), not '${productSlug}'.`,
         "PRODUCT_MISMATCH"
@@ -249,14 +276,14 @@ export class LicenseService {
     const boundDevice = license.devices.find((d) => d.hwid === cleanedHWID);
 
     if (!boundDevice) {
-      // If UNUSED, automatically bind this first device
+      // If UNUSED, automatically bind this first device using exact key casing from DB
       if (license.status === LicenseStatus.UNUSED) {
-        return await this.activateClientLicense(cleanedKey, cleanedHWID, ipAddress, userAgent, productSlug);
+        return await this.activateClientLicense(license.key, cleanedHWID, ipAddress, userAgent, productSlug);
       }
 
       // If ACTIVE, check if it can bind a new device within maxDevices limit
       if (license.devices.length < license.maxDevices) {
-        return await this.activateClientLicense(cleanedKey, cleanedHWID, ipAddress, userAgent, productSlug);
+        return await this.activateClientLicense(license.key, cleanedHWID, ipAddress, userAgent, productSlug);
       }
 
       // Otherwise, HWID mismatch / device limit reached
@@ -265,6 +292,7 @@ export class LicenseService {
         "HWID_MISMATCH"
       );
     }
+
 
     // Update last seen timestamp and IP
     await prisma.device.update({
@@ -302,10 +330,11 @@ export class LicenseService {
    * Client Activation Endpoint logic
    */
   public static async activateClientLicense(key: string, hwid: string, ipAddress?: string, userAgent?: string, productSlug?: string) {
-    const cleanedKey = key.toUpperCase().trim();
+    const cleanedKey = key.trim();
     const cleanedHWID = hwid.trim();
 
-    const license = await prisma.license.findUnique({
+    // Exact key lookup, then uppercase/lowercase fallback
+    let license = await prisma.license.findUnique({
       where: { key: cleanedKey },
       include: {
         product: true,
@@ -314,16 +343,43 @@ export class LicenseService {
     });
 
     if (!license) {
+      license = await prisma.license.findUnique({
+        where: { key: cleanedKey.toUpperCase() },
+        include: {
+          product: true,
+          devices: true,
+        },
+      });
+    }
+
+    if (!license) {
+      license = await prisma.license.findUnique({
+        where: { key: cleanedKey.toLowerCase() },
+        include: {
+          product: true,
+          devices: true,
+        },
+      });
+    }
+
+    if (!license) {
       throw new AppError("INVALID_LICENSE", "The license key is invalid.", 404);
     }
 
     // Check product slug match if specified
-    if (productSlug && license.product && license.product.slug.toLowerCase() !== productSlug.toLowerCase()) {
+    // Lifetime keys (expiresAt === null) enjoy universal VIP access across all products!
+    if (
+      productSlug &&
+      license.product &&
+      license.expiresAt !== null &&
+      license.product.slug.toLowerCase() !== productSlug.toLowerCase()
+    ) {
       throw new ForbiddenError(
         `License key belongs to '${license.product.name}' (${license.product.slug}), not '${productSlug}'.`,
         "PRODUCT_MISMATCH"
       );
     }
+
 
     if (license.status === LicenseStatus.REVOKED) {
       throw new ForbiddenError("The license has been revoked.", "LICENSE_REVOKED");

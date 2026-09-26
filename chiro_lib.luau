@@ -2146,7 +2146,9 @@ function Chiro:CreateWindow(cfg)
             if data and data.success then
                 if keyConfig.ProductSlug and keyConfig.ProductSlug ~= "" then
                     local prod = data.data and (data.data.product or data.data.Product)
-                    if prod and prod.slug then
+                    local lic = data.data and (data.data.license or data.data.License)
+                    local isLifetime = (lic and (lic.isLifetime == true or lic.expiresAt == nil)) or false
+                    if not isLifetime and prod and prod.slug then
                         if string.lower(tostring(prod.slug)) ~= string.lower(tostring(keyConfig.ProductSlug)) then
                             return false, "Key is for " .. tostring(prod.name or prod.slug) .. " (Requires " .. tostring(keyConfig.ProductSlug) .. ")"
                         end
@@ -2171,7 +2173,9 @@ function Chiro:CreateWindow(cfg)
             if actData and actData.success then
                 if keyConfig.ProductSlug and keyConfig.ProductSlug ~= "" then
                     local prod = actData.data and (actData.data.product or actData.data.Product)
-                    if prod and prod.slug then
+                    local lic = actData.data and (actData.data.license or actData.data.License)
+                    local isLifetime = (lic and (lic.isLifetime == true or lic.expiresAt == nil)) or false
+                    if not isLifetime and prod and prod.slug then
                         if string.lower(tostring(prod.slug)) ~= string.lower(tostring(keyConfig.ProductSlug)) then
                             return false, "Key is for " .. tostring(prod.name or prod.slug) .. " (Requires " .. tostring(keyConfig.ProductSlug) .. ")"
                         end
@@ -2180,6 +2184,7 @@ function Chiro:CreateWindow(cfg)
                 return true, actData.data
             end
         end
+
 
         local errMsg = "License key is invalid or revoked."
         pcall(function()
