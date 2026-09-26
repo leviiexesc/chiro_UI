@@ -1,6 +1,7 @@
 # ===================================================
 # RENDER BLUEPRINT SPECIFICATION (render.yaml)
 # Chiro UI License Center & PostgreSQL Service
+# Region: Singapore (Southeast Asia)
 # ===================================================
 
 databases:
@@ -34,6 +35,8 @@ services:
         generateValue: true
       - key: ADMIN_SESSION_SECRET
         generateValue: true
+      - key: ADMIN_API_KEY
+        generateValue: true
       - key: CORS_ORIGIN
         value: "*"
       - key: INITIAL_ADMIN_USERNAME
@@ -44,3 +47,5 @@ services:
         value: ChangeThisSecurePassword2026!
       - key: TELEGRAM_BOT_TOKEN
         sync: false
+      - key: ENABLE_EMBEDDED_TELEGRAM_BOT
+        value: "false"
