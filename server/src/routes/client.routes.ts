@@ -1,16 +1,26 @@
 import { Router } from "express";
 import { z } from "zod";
 import { LicenseService } from "../services/license.service.js";
+import { PayloadService } from "../services/payload.service.js";
 import { sendSuccess, sendError } from "../utils/response.js";
 import { clientRateLimiter } from "../middleware/rateLimit.middleware.js";
 import { prisma } from "../prisma.js";
-import { NotFoundError, AppError } from "../utils/errors.js";
+import { NotFoundError, AppError, ForbiddenError } from "../utils/errors.js";
 import crypto from "crypto";
 
 const router = Router();
 
 // Apply rate limiter to all public client endpoints
 router.use(clientRateLimiter);
+
+const payloadSchema = z.object({
+  key: z.string().min(1, "License key is required"),
+  hwid: z.string().min(1, "HWID is required"),
+  productSlug: z.string().optional(),
+  placeId: z.union([z.string(), z.number()]).optional(),
+  jobId: z.string().optional(),
+  format: z.enum(["encrypted", "raw", "base64"]).optional().default("encrypted"),
+});
 
 const verifySchema = z.object({
   key: z.string().min(1, "License key is required"),
@@ -351,6 +361,130 @@ router.post("/activate", async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+});
+
+// ==============================================================================
+// 🛡️ DYNAMIC SERVER-SIDE SCRIPT DELIVERY
+// POST /api/v1/client/get-payload — Authenticated encrypted Luau payload delivery
+// GET  /api/v1/client/payload     — Direct authenticated GET payload delivery
+// GET  /api/v1/client/loader      — Serves lightweight universal Roblox loader
+// ==============================================================================
+
+router.post("/get-payload", async (req, res, next) => {
+  try {
+    const { key, hwid, productSlug, placeId, jobId, format } = payloadSchema.parse(req.body);
+    const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
+    const userAgent = req.headers["user-agent"] || "Luau-Client";
+
+    // 1. Blacklist check on HWID
+    const hwidBlacklisted = await prisma.blacklist.findFirst({
+      where: { type: "HWID", value: hwid.trim() },
+    });
+    if (hwidBlacklisted) {
+      throw new ForbiddenError(
+        "This hardware identifier (HWID) has been blacklisted from using Chiro UI.",
+        "HWID_BLACKLISTED"
+      );
+    }
+
+    // 2. License verification or activation
+    let verifyResult: any;
+    try {
+      verifyResult = await LicenseService.verifyClientLicense(key, hwid, ip, userAgent, productSlug);
+    } catch (err: any) {
+      // Auto-activate on first launch if not yet bound
+      if (err.code === "DEVICE_NOT_REGISTERED" || err.code === "DEVICE_LIMIT_REACHED") {
+        verifyResult = await LicenseService.activateClientLicense(key, hwid, ip, userAgent, productSlug);
+      } else {
+        throw err;
+      }
+    }
+
+    // 3. Ensure script payload is loaded
+    const rawScript = PayloadService.getRawScript();
+    if (!rawScript || rawScript.length < 50) {
+      throw new AppError("SCRIPT_UNAVAILABLE", "Protected script payload is temporarily unavailable on server.", 503);
+    }
+
+    // 4. Return formatted payload
+    if (format === "raw") {
+      return sendSuccess(res, {
+        format: "raw",
+        script: rawScript,
+        license: verifyResult.license,
+        product: verifyResult.product,
+      });
+    }
+
+    if (format === "base64") {
+      return sendSuccess(res, {
+        format: "base64",
+        payload: Buffer.from(rawScript, "utf8").toString("base64"),
+        license: verifyResult.license,
+        product: verifyResult.product,
+      });
+    }
+
+    // Default: XOR encrypted with client's unique license key
+    const encryptedPayload = PayloadService.getEncryptedPayload(key);
+    return sendSuccess(res, {
+      format: "encrypted",
+      payload: encryptedPayload,
+      license: verifyResult.license,
+      product: verifyResult.product,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/payload", async (req, res, next) => {
+  try {
+    const key = (req.query.key as string)?.trim();
+    const hwid = (req.query.hwid as string)?.trim();
+    const productSlug = (req.query.productSlug as string)?.trim();
+    const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
+    const userAgent = req.headers["user-agent"] || "Luau-Client";
+
+    if (!key || !hwid) {
+      res.status(403).type("text/plain").send(`-- [CHIRO SECURITY] Access Denied: Valid key and hwid required.\nerror("Access Denied: Key and HWID required")`);
+      return;
+    }
+
+    const hwidBlacklisted = await prisma.blacklist.findFirst({
+      where: { type: "HWID", value: hwid },
+    });
+    if (hwidBlacklisted) {
+      res.status(403).type("text/plain").send(`-- [CHIRO SECURITY] Access Denied: Device is blacklisted.\nerror("Access Denied: HWID Blacklisted")`);
+      return;
+    }
+
+    try {
+      await LicenseService.verifyClientLicense(key, hwid, ip, userAgent, productSlug);
+    } catch {
+      try {
+        await LicenseService.activateClientLicense(key, hwid, ip, userAgent, productSlug);
+      } catch (err: any) {
+        res.status(403).type("text/plain").send(`-- [CHIRO SECURITY] Verification Failed: ${err.message}\nerror("Verification Failed: " .. ${JSON.stringify(err.message)})`);
+        return;
+      }
+    }
+
+    const rawScript = PayloadService.getRawScript();
+    if (!rawScript || rawScript.length < 50) {
+      res.status(503).type("text/plain").send(`-- [CHIRO SECURITY] Script temporarily unavailable\nerror("Script unavailable")`);
+      return;
+    }
+
+    res.status(200).type("text/plain").send(rawScript);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/loader", (req, res) => {
+  const loader = PayloadService.getLoaderScript();
+  res.status(200).type("text/plain").send(loader);
 });
 
 // In-memory cooldown store for HWID resets (key → last reset timestamp)

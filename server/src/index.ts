@@ -2,6 +2,7 @@ import { app } from "./app.js";
 import { config } from "./config/index.js";
 import { prisma } from "./prisma.js";
 import { TelegramBotService } from "./services/telegramBot.service.js";
+import { PayloadService } from "./services/payload.service.js";
 
 const server = app.listen(config.PORT, () => {
   console.log(`
@@ -13,6 +14,9 @@ const server = app.listen(config.PORT, () => {
   📊 Health Check: http://localhost:${config.PORT}/api/v1/health
   ========================================================
   `);
+
+  // Initialize protected script payload engine
+  PayloadService.initialize();
 
   // Initialize Telegram Bot only if explicitly enabled (handled by dedicated Chiro-Bot service)
   if (process.env.ENABLE_EMBEDDED_TELEGRAM_BOT === "true") {
