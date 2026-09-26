@@ -34,31 +34,54 @@ const resetSchema = z.object({
 });
 
 
-// GET /api/v1/client/my-keys - Retrieve keys bound to a Telegram account permanently
+// GET /api/v1/client/my-keys - Retrieve keys bound to a Telegram or Discord account
 router.get("/my-keys", async (req, res, next) => {
   try {
     const telegramId = (req.query.telegramId as string)?.trim();
-    if (!telegramId) {
+    const discordId = (req.query.discordId as string)?.trim();
+    if (!telegramId && !discordId) {
       return sendSuccess(res, []);
     }
+
+    const whereOr: any[] = [];
+    if (telegramId) {
+      whereOr.push(
+        { customerName: { contains: `ID:${telegramId}` } },
+        { note: { contains: `ID:${telegramId}` } }
+      );
+    }
+    if (discordId) {
+      whereOr.push(
+        { customerDiscord: discordId },
+        { customerName: { contains: `DISCORD_ID:${discordId}` } },
+        { note: { contains: `DISCORD_ID:${discordId}` } }
+      );
+    }
+
     const licenses = await prisma.license.findMany({
-      where: {
-        OR: [
-          { customerName: { contains: `ID:${telegramId}` } },
-          { note: { contains: `ID:${telegramId}` } },
-        ],
-      },
+      where: { OR: whereOr },
       include: {
         product: { select: { id: true, name: true, slug: true } },
         _count: { select: { devices: true } },
       },
       orderBy: { createdAt: "desc" },
     });
-    return sendSuccess(res, licenses);
+
+    const licensesWithCooldown = licenses.map((lic) => {
+      const lastReset = hwidResetCooldowns.get(lic.key);
+      return {
+        ...lic,
+        lastResetAt: lastReset ? new Date(lastReset).toISOString() : null,
+        lastResetTimestamp: lastReset || null,
+      };
+    });
+
+    return sendSuccess(res, licensesWithCooldown);
   } catch (err) {
     next(err);
   }
 });
+
 
 
 // ================================================================
