@@ -234,8 +234,20 @@ router.post("/activate", async (req, res, next) => {
   }
 });
 
-// POST /api/v1/client/reset-hwid - Admin-initiated HWID reset via key
-// NOTE: This endpoint resets ALL devices for a key (admin use via automation)
+// In-memory cooldown store for HWID resets (key → last reset timestamp)
+// 4-day cooldown: users cannot reset more than once every 4 days via bot
+const hwidResetCooldowns = new Map<string, number>();
+const HWID_COOLDOWN_MS = 4 * 24 * 60 * 60 * 1000; // 4 days in milliseconds
+
+// Clean up old entries every hour
+setInterval(() => {
+  const cutoff = Date.now() - HWID_COOLDOWN_MS;
+  for (const [key, ts] of hwidResetCooldowns.entries()) {
+    if (ts < cutoff) hwidResetCooldowns.delete(key);
+  }
+}, 60 * 60 * 1000);
+
+// POST /api/v1/client/reset-hwid - User-initiated HWID reset via key (4-day cooldown)
 router.post("/reset-hwid", async (req, res, next) => {
   try {
     const { key } = resetSchema.parse(req.body);
@@ -246,10 +258,31 @@ router.post("/reset-hwid", async (req, res, next) => {
       throw new NotFoundError("License key not found", "INVALID_LICENSE");
     }
 
+    // Enforce 4-day cooldown
+    const lastReset = hwidResetCooldowns.get(key);
+    if (lastReset) {
+      const elapsed = Date.now() - lastReset;
+      if (elapsed < HWID_COOLDOWN_MS) {
+        const remainingMs = HWID_COOLDOWN_MS - elapsed;
+        const remainingDays = Math.ceil(remainingMs / (24 * 60 * 60 * 1000));
+        const remainingHours = Math.ceil(remainingMs / (60 * 60 * 1000));
+        throw new AppError(
+          "HWID_COOLDOWN",
+          `HWID reset is on cooldown. You can reset again in ${remainingDays > 1 ? remainingDays + " days" : remainingHours + " hours"}.`,
+          429
+        );
+      }
+    }
+
     const result = await LicenseService.resetHWID(license.id, undefined, ip);
+
+    // Record the reset time
+    hwidResetCooldowns.set(key, Date.now());
 
     return sendSuccess(res, {
       message: "HWID reset successfully. You may now activate this key on a new device.",
+      cooldownDays: 4,
+      nextResetAvailable: new Date(Date.now() + HWID_COOLDOWN_MS).toISOString(),
       ...result,
     });
   } catch (err) {
