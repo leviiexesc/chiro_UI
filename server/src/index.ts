@@ -14,9 +14,14 @@ const server = app.listen(config.PORT, () => {
   ========================================================
   `);
 
-  // Initialize Telegram Bot if TELEGRAM_BOT_TOKEN is present
-  TelegramBotService.initialize();
+  // Initialize Telegram Bot only if explicitly enabled (handled by dedicated Chiro-Bot service)
+  if (process.env.ENABLE_EMBEDDED_TELEGRAM_BOT === "true") {
+    TelegramBotService.initialize();
+  } else {
+    console.log("ℹ️ Embedded Telegram Bot disabled (handled by standalone Chiro-Bot service).");
+  }
 });
+
 
 // Graceful Shutdown
 const shutdown = async (signal: string) => {
