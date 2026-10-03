@@ -138,3 +138,24 @@ model FreeKeyClaim {
   @@index([telegramId])
   @@map("free_key_claims")
 }
+
+model ScriptSession {
+  id          String   @id @default(uuid())
+  licenseKey  String
+  hwid        String
+  robloxUser  String?  // Roblox username
+  placeId     String?  // Game Place ID
+  gameName    String?  // Game name (e.g. "Blox Fruits")
+  executor    String?  // Executor name (Delta, Wave, Codex...)
+  country     String?  // CF-IPCountry header or detected
+  ipAddress   String?
+  lastPingAt  DateTime @default(now())
+  startedAt   DateTime @default(now())
+  isActive    Boolean  @default(true)
+
+  @@unique([licenseKey, hwid])
+  @@index([licenseKey])
+  @@index([isActive])
+  @@index([lastPingAt])
+  @@map("script_sessions")
+}

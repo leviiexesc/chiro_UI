@@ -10,6 +10,7 @@ import { AuditLogs } from './pages/AuditLogs';
 import { Settings } from './pages/Settings';
 import { FreeKey } from './pages/FreeKey';
 import { Blacklist } from './pages/Blacklist';
+import { Analytics } from './pages/Analytics';
 import { useAuth } from './context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
@@ -78,6 +79,8 @@ export const App: React.FC = () => {
         return <Products />;
       case 'devices':
         return <Devices initialSearch={globalSearch} />;
+      case 'analytics':
+        return <Analytics />;
       case 'blacklist':
         return <Blacklist />;
       case 'audit-logs':

@@ -8,6 +8,7 @@ import {
   Settings, 
   ShieldCheck, 
   ShieldBan,
+  BarChart2,
   X 
 } from 'lucide-react';
 
@@ -26,6 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'analytics', label: 'Analytics', icon: BarChart2 },
     { id: 'licenses', label: 'Licenses', icon: Key },
     { id: 'products', label: 'Products', icon: Package },
     { id: 'devices', label: 'Devices', icon: Cpu },

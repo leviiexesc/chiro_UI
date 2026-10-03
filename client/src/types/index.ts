@@ -125,3 +125,33 @@ export interface BlacklistEntry {
   bannedBy?: string;
   createdAt: string;
 }
+
+export interface AnalyticsGameEntry {
+  name: string;
+  count: number;
+}
+
+export interface AnalyticsExecutorEntry {
+  executor: string;
+  count: number;
+}
+
+export interface AnalyticsSessionEntry {
+  id: string;
+  robloxUser: string;
+  gameName: string;
+  executor: string;
+  country: string;
+  ipAddress: string;
+  placeId: string;
+  durationSeconds: number;
+  lastPingAt: string;
+  startedAt: string;
+}
+
+export interface AnalyticsData {
+  liveCount: number;
+  gameBreakdown: AnalyticsGameEntry[];
+  executorBreakdown: AnalyticsExecutorEntry[];
+  sessionLog: AnalyticsSessionEntry[];
+}

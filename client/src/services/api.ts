@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { ApiResponse, OverviewStats, License, Product, Device, AuditLog, AdminUser, BlacklistEntry } from '../types';
+import { ApiResponse, OverviewStats, License, Product, Device, AuditLog, AdminUser, BlacklistEntry, AnalyticsData } from '../types';
 
 const API_BASE = '/api/v1';
 
@@ -204,5 +204,11 @@ export const api = {
 
   async removeBlacklist(id: string): Promise<void> {
     await apiClient.delete<ApiResponse>(`/admin/blacklist/${id}`);
+  },
+
+  // Analytics
+  async getAnalytics(): Promise<AnalyticsData> {
+    const res = await apiClient.get<ApiResponse<AnalyticsData>>('/admin/analytics');
+    return res.data.data!;
   },
 };

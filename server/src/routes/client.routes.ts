@@ -20,6 +20,10 @@ const payloadSchema = z.object({
   placeId: z.union([z.string(), z.number()]).optional(),
   jobId: z.string().optional(),
   format: z.enum(["encrypted", "raw", "base64"]).optional().default("encrypted"),
+  // Analytics fields
+  executor: z.string().max(64).optional(),
+  robloxUser: z.string().max(64).optional(),
+  gameName: z.string().max(128).optional(),
 });
 
 const verifySchema = z.object({
@@ -28,6 +32,10 @@ const verifySchema = z.object({
   productSlug: z.string().optional(),
   placeId: z.union([z.string(), z.number()]).optional(),
   jobId: z.string().optional(),
+  // Analytics fields
+  executor: z.string().max(64).optional(),
+  robloxUser: z.string().max(64).optional(),
+  gameName: z.string().max(128).optional(),
 });
 
 const activateSchema = z.object({
@@ -338,11 +346,37 @@ router.post("/redeem", async (req, res, next) => {
 // POST /api/v1/client/verify - Verify client license and HWID
 router.post("/verify", async (req, res, next) => {
   try {
-    const { key, hwid, productSlug } = verifySchema.parse(req.body);
+    const { key, hwid, productSlug, placeId, executor, robloxUser, gameName } = verifySchema.parse(req.body);
     const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
     const userAgent = req.headers["user-agent"] || "Luau-Client";
+    const country = (req.headers["cf-ipcountry"] as string) || undefined;
 
     const result = await LicenseService.verifyClientLicense(key, hwid, ip, userAgent, productSlug);
+
+    // Upsert analytics session (fire-and-forget, non-blocking)
+    prisma.scriptSession.upsert({
+      where: { licenseKey_hwid: { licenseKey: key, hwid } },
+      update: {
+        lastPingAt: new Date(),
+        isActive: true,
+        ...(executor && { executor }),
+        ...(robloxUser && { robloxUser }),
+        ...(gameName && { gameName }),
+        ...(placeId !== undefined && { placeId: String(placeId) }),
+      },
+      create: {
+        licenseKey: key,
+        hwid,
+        robloxUser: robloxUser || undefined,
+        gameName: gameName || undefined,
+        placeId: placeId !== undefined ? String(placeId) : undefined,
+        executor: executor || undefined,
+        country,
+        ipAddress: ip,
+        isActive: true,
+      },
+    }).catch(() => {}); // ignore errors silently
+
     return sendSuccess(res, result);
   } catch (err) {
     next(err);
@@ -372,9 +406,10 @@ router.post("/activate", async (req, res, next) => {
 
 router.post("/get-payload", async (req, res, next) => {
   try {
-    const { key, hwid, productSlug, placeId, jobId, format } = payloadSchema.parse(req.body);
+    const { key, hwid, productSlug, placeId, jobId, format, executor, robloxUser, gameName } = payloadSchema.parse(req.body);
     const ip = req.ip || (req.headers["x-forwarded-for"] as string) || "Unknown";
     const userAgent = req.headers["user-agent"] || "Luau-Client";
+    const country = (req.headers["cf-ipcountry"] as string) || undefined;
 
     // 1. Blacklist check on HWID
     const hwidBlacklisted = await prisma.blacklist.findFirst({
@@ -400,7 +435,31 @@ router.post("/get-payload", async (req, res, next) => {
       }
     }
 
-    // 3. Ensure script payload is loaded
+    // 3. Upsert analytics session (fire-and-forget)
+    prisma.scriptSession.upsert({
+      where: { licenseKey_hwid: { licenseKey: key, hwid } },
+      update: {
+        lastPingAt: new Date(),
+        isActive: true,
+        ...(executor && { executor }),
+        ...(robloxUser && { robloxUser }),
+        ...(gameName && { gameName }),
+        ...(placeId !== undefined && { placeId: String(placeId) }),
+      },
+      create: {
+        licenseKey: key,
+        hwid,
+        robloxUser: robloxUser || undefined,
+        gameName: gameName || undefined,
+        placeId: placeId !== undefined ? String(placeId) : undefined,
+        executor: executor || undefined,
+        country,
+        ipAddress: ip,
+        isActive: true,
+      },
+    }).catch(() => {}); // ignore silently
+
+    // 4. Ensure script payload is loaded
     const rawScript = PayloadService.getRawScript();
     if (!rawScript || rawScript.length < 50) {
       throw new AppError("SCRIPT_UNAVAILABLE", "Protected script payload is temporarily unavailable on server.", 503);

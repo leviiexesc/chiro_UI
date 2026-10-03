@@ -152,12 +152,41 @@ local placeId = tostring(game.PlaceId or 0)
 local jobId = tostring(game.JobId or "")
 local productSlug = _env.ProductSlug or _G.ProductSlug or nil
 
+-- Analytics: executor name, Roblox username, game name
+local executorName = "Unknown"
+pcall(function()
+    if identifyexecutor then
+        executorName = identifyexecutor() or "Unknown"
+    elseif EXECUTOR_NAME then
+        executorName = tostring(EXECUTOR_NAME)
+    end
+end)
+
+local robloxUser = "Unknown"
+pcall(function()
+    if LocalPlayer and LocalPlayer.Name then
+        robloxUser = LocalPlayer.Name
+    end
+end)
+
+local gameName = "Unknown"
+pcall(function()
+    local ms = game:GetService("MarketplaceService")
+    local info = ms:GetProductInfo(game.PlaceId, Enum.InfoType.Asset)
+    if info and info.Name then
+        gameName = info.Name
+    end
+end)
+
 local payloadReq = {
     key = userKey,
     hwid = hwid,
     placeId = placeId,
     jobId = jobId,
     format = "encrypted",
+    executor = executorName,
+    robloxUser = robloxUser,
+    gameName = gameName,
 }
 if productSlug and tostring(productSlug) ~= "" then
     payloadReq.productSlug = tostring(productSlug)
