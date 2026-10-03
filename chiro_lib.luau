@@ -1063,42 +1063,134 @@ local function makeDraggable(handle, target, onDragCallback)
 end
 
 -- ============================================================
---  THEMES
+--  THEMES (Modern & Gen-Z Aesthetic)
 -- ============================================================
 local Themes = {
+    Cyberpunk = {
+        BG         = Color3.fromRGB(9, 10, 16),
+        Surface    = Color3.fromRGB(13, 16, 26),
+        Card       = Color3.fromRGB(17, 21, 34),
+        CardHover  = Color3.fromRGB(24, 30, 48),
+        Sidebar    = Color3.fromRGB(11, 13, 22),
+        Topbar     = Color3.fromRGB(10, 11, 19),
+        Border     = Color3.fromRGB(36, 44, 70),
+        BorderHover= Color3.fromRGB(0, 242, 254),
+        Accent     = Color3.fromRGB(0, 242, 254),
+        AccentGlow = Color3.fromRGB(168, 85, 247),
+        Text       = Color3.fromRGB(248, 250, 252),
+        TextMuted  = Color3.fromRGB(148, 163, 184),
+        TextFaint  = Color3.fromRGB(71, 85, 105),
+        ToggleOn   = Color3.fromRGB(0, 242, 254),
+        ToggleOff  = Color3.fromRGB(38, 44, 66),
+        InputBG    = Color3.fromRGB(14, 17, 28),
+    },
+    Synthwave = {
+        BG         = Color3.fromRGB(13, 8, 22),
+        Surface    = Color3.fromRGB(20, 13, 34),
+        Card       = Color3.fromRGB(25, 17, 43),
+        CardHover  = Color3.fromRGB(34, 23, 58),
+        Sidebar    = Color3.fromRGB(16, 10, 28),
+        Topbar     = Color3.fromRGB(14, 9, 24),
+        Border     = Color3.fromRGB(60, 36, 95),
+        BorderHover= Color3.fromRGB(255, 0, 128),
+        Accent     = Color3.fromRGB(255, 0, 128),
+        AccentGlow = Color3.fromRGB(0, 210, 255),
+        Text       = Color3.fromRGB(253, 244, 255),
+        TextMuted  = Color3.fromRGB(192, 132, 252),
+        TextFaint  = Color3.fromRGB(126, 75, 168),
+        ToggleOn   = Color3.fromRGB(255, 0, 128),
+        ToggleOff  = Color3.fromRGB(50, 30, 80),
+        InputBG    = Color3.fromRGB(18, 11, 32),
+    },
+    TokyoNight = {
+        BG         = Color3.fromRGB(10, 12, 22),
+        Surface    = Color3.fromRGB(15, 18, 33),
+        Card       = Color3.fromRGB(20, 24, 43),
+        CardHover  = Color3.fromRGB(28, 34, 60),
+        Sidebar    = Color3.fromRGB(13, 15, 28),
+        Topbar     = Color3.fromRGB(11, 13, 24),
+        Border     = Color3.fromRGB(42, 50, 85),
+        BorderHover= Color3.fromRGB(129, 140, 248),
+        Accent     = Color3.fromRGB(129, 140, 248),
+        AccentGlow = Color3.fromRGB(56, 189, 248),
+        Text       = Color3.fromRGB(240, 244, 255),
+        TextMuted  = Color3.fromRGB(148, 163, 210),
+        TextFaint  = Color3.fromRGB(80, 92, 135),
+        ToggleOn   = Color3.fromRGB(56, 189, 248),
+        ToggleOff  = Color3.fromRGB(35, 42, 70),
+        InputBG    = Color3.fromRGB(16, 19, 35),
+    },
+    ToxicEmerald = {
+        BG         = Color3.fromRGB(6, 12, 9),
+        Surface    = Color3.fromRGB(10, 18, 14),
+        Card       = Color3.fromRGB(14, 25, 19),
+        CardHover  = Color3.fromRGB(20, 35, 27),
+        Sidebar    = Color3.fromRGB(8, 15, 11),
+        Topbar     = Color3.fromRGB(7, 13, 10),
+        Border     = Color3.fromRGB(30, 55, 42),
+        BorderHover= Color3.fromRGB(0, 255, 136),
+        Accent     = Color3.fromRGB(0, 255, 136),
+        AccentGlow = Color3.fromRGB(52, 211, 153),
+        Text       = Color3.fromRGB(240, 253, 244),
+        TextMuted  = Color3.fromRGB(110, 231, 183),
+        TextFaint  = Color3.fromRGB(52, 120, 90),
+        ToggleOn   = Color3.fromRGB(0, 255, 136),
+        ToggleOff  = Color3.fromRGB(25, 45, 35),
+        InputBG    = Color3.fromRGB(10, 20, 15),
+    },
+    Midnight = {
+        BG         = Color3.fromRGB(8, 9, 14),
+        Surface    = Color3.fromRGB(13, 15, 22),
+        Card       = Color3.fromRGB(18, 20, 30),
+        CardHover  = Color3.fromRGB(26, 29, 44),
+        Sidebar    = Color3.fromRGB(11, 13, 19),
+        Topbar     = Color3.fromRGB(9, 11, 16),
+        Border     = Color3.fromRGB(36, 42, 62),
+        BorderHover= Color3.fromRGB(59, 130, 246),
+        Accent     = Color3.fromRGB(59, 130, 246),
+        AccentGlow = Color3.fromRGB(96, 165, 250),
+        Text       = Color3.fromRGB(241, 245, 249),
+        TextMuted  = Color3.fromRGB(148, 163, 184),
+        TextFaint  = Color3.fromRGB(71, 85, 105),
+        ToggleOn   = Color3.fromRGB(59, 130, 246),
+        ToggleOff  = Color3.fromRGB(38, 44, 65),
+        InputBG    = Color3.fromRGB(14, 16, 25),
+    },
     Dark = {
-        BG         = Color3.fromRGB(9, 9, 12),
-        Surface    = Color3.fromRGB(15, 15, 19),
-        Card       = Color3.fromRGB(20, 20, 26),
-        CardHover  = Color3.fromRGB(26, 26, 34),
-        Sidebar    = Color3.fromRGB(13, 13, 17),
-        Topbar     = Color3.fromRGB(11, 11, 14),
-        Border     = Color3.fromRGB(38, 38, 48),
-        BorderHover= Color3.fromRGB(75, 75, 90),
-        Accent     = Color3.fromRGB(255, 255, 255),
-        Text       = Color3.fromRGB(240, 240, 245),
-        TextMuted  = Color3.fromRGB(130, 130, 142),
-        TextFaint  = Color3.fromRGB(75, 75, 88),
-        ToggleOn   = Color3.fromRGB(30, 215, 96),
-        ToggleOff  = Color3.fromRGB(48, 48, 58),
-        InputBG    = Color3.fromRGB(16, 16, 22),
+        BG         = Color3.fromRGB(11, 13, 18),
+        Surface    = Color3.fromRGB(15, 18, 25),
+        Card       = Color3.fromRGB(20, 24, 34),
+        CardHover  = Color3.fromRGB(27, 32, 46),
+        Sidebar    = Color3.fromRGB(13, 15, 22),
+        Topbar     = Color3.fromRGB(12, 14, 20),
+        Border     = Color3.fromRGB(36, 42, 58),
+        BorderHover= Color3.fromRGB(0, 220, 255),
+        Accent     = Color3.fromRGB(0, 220, 255),
+        AccentGlow = Color3.fromRGB(139, 92, 246),
+        Text       = Color3.fromRGB(245, 247, 250),
+        TextMuted  = Color3.fromRGB(140, 145, 165),
+        TextFaint  = Color3.fromRGB(75, 80, 100),
+        ToggleOn   = Color3.fromRGB(0, 220, 255),
+        ToggleOff  = Color3.fromRGB(44, 50, 68),
+        InputBG    = Color3.fromRGB(16, 19, 28),
     },
     Light = {
-        BG         = Color3.fromRGB(246, 246, 249),
+        BG         = Color3.fromRGB(245, 247, 250),
         Surface    = Color3.fromRGB(255, 255, 255),
         Card       = Color3.fromRGB(255, 255, 255),
-        CardHover  = Color3.fromRGB(242, 242, 247),
-        Sidebar    = Color3.fromRGB(240, 240, 245),
-        Topbar     = Color3.fromRGB(235, 235, 242),
-        Border     = Color3.fromRGB(218, 218, 228),
-        BorderHover= Color3.fromRGB(170, 170, 185),
-        Accent     = Color3.fromRGB(15, 15, 20),
-        Text       = Color3.fromRGB(15, 15, 22),
-        TextMuted  = Color3.fromRGB(105, 105, 118),
-        TextFaint  = Color3.fromRGB(165, 165, 175),
-        ToggleOn   = Color3.fromRGB(30, 215, 96),
-        ToggleOff  = Color3.fromRGB(210, 210, 220),
-        InputBG    = Color3.fromRGB(240, 240, 245),
+        CardHover  = Color3.fromRGB(240, 243, 248),
+        Sidebar    = Color3.fromRGB(238, 241, 246),
+        Topbar     = Color3.fromRGB(234, 238, 244),
+        Border     = Color3.fromRGB(215, 220, 230),
+        BorderHover= Color3.fromRGB(0, 180, 240),
+        Accent     = Color3.fromRGB(0, 180, 240),
+        AccentGlow = Color3.fromRGB(120, 80, 230),
+        Text       = Color3.fromRGB(15, 23, 42),
+        TextMuted  = Color3.fromRGB(100, 116, 139),
+        TextFaint  = Color3.fromRGB(160, 174, 192),
+        ToggleOn   = Color3.fromRGB(0, 180, 240),
+        ToggleOff  = Color3.fromRGB(203, 213, 225),
+        InputBG    = Color3.fromRGB(238, 242, 246),
     }
 }
 
@@ -1556,12 +1648,13 @@ function Chiro:CreateWindow(cfg)
     local wSize      = cfg.Size      or UDim2.fromOffset(720, 500)
     local toggleKey  = cfg.ToggleKey or Enum.KeyCode.RightShift
 
-    local currentTheme = Themes.Dark
+    local selectedThemeName = cfg.Theme or "Cyberpunk"
+    local currentTheme = Themes[selectedThemeName] or Themes.Cyberpunk or Themes.Dark
 
     local Win = {
         Tabs = {},
         ActiveTab = nil,
-        _themeName = "Dark",
+        _themeName = selectedThemeName,
         _objects = {
             MainFrames = {},
             Sidebars   = {},
@@ -1623,15 +1716,14 @@ function Chiro:CreateWindow(cfg)
         }, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
     end)
 
-    -- Dynamic Cyber Glow Outline
+    -- Dynamic Cyber Glow Outline (Neon Gen-Z Rotating Beam)
     local GlowStroke = makeStroke(MainFrame, Color3.fromRGB(255, 255, 255), 1.5)
     local GlowGrad = Instance.new("UIGradient")
     GlowGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
-        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(70, 70, 70)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(0.55, Color3.fromRGB(70, 70, 70)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(30, 30, 30)),
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 242, 254)),
+        ColorSequenceKeypoint.new(0.33, Color3.fromRGB(168, 85, 247)),
+        ColorSequenceKeypoint.new(0.66, Color3.fromRGB(236, 72, 153)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 242, 254)),
     })
     GlowGrad.Parent = GlowStroke
 
@@ -1678,13 +1770,32 @@ function Chiro:CreateWindow(cfg)
         titleLeftOffset = 36
     else
         local BrandDot = Instance.new("Frame")
-        BrandDot.Size = UDim2.fromOffset(6, 6)
-        BrandDot.Position = UDim2.new(0, 14, 0.5, -3)
-        BrandDot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        BrandDot.Size = UDim2.fromOffset(7, 7)
+        BrandDot.Position = UDim2.new(0, 14, 0.5, -3.5)
+        BrandDot.BackgroundColor3 = Color3.fromRGB(0, 242, 254)
         BrandDot.BorderSizePixel = 0
         BrandDot.Parent = Topbar
-        makeCorner(BrandDot, 3)
-        titleLeftOffset = 26
+        makeCorner(BrandDot, 4)
+
+        local PingDot = Instance.new("Frame")
+        PingDot.Size = UDim2.fromOffset(13, 13)
+        PingDot.Position = UDim2.new(0, 11, 0.5, -6.5)
+        PingDot.BackgroundColor3 = Color3.fromRGB(0, 242, 254)
+        PingDot.BackgroundTransparency = 0.6
+        PingDot.BorderSizePixel = 0
+        PingDot.Parent = Topbar
+        makeCorner(PingDot, 7)
+
+        task.spawn(function()
+            while Topbar and Topbar.Parent do
+                quickTween(PingDot, 0.8, { Size = UDim2.fromOffset(17, 17), Position = UDim2.new(0, 9, 0.5, -8.5), BackgroundTransparency = 1 }, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+                task.wait(0.85)
+                PingDot.Size = UDim2.fromOffset(7, 7)
+                PingDot.Position = UDim2.new(0, 14, 0.5, -3.5)
+                PingDot.BackgroundTransparency = 0.5
+            end
+        end)
+        titleLeftOffset = 28
     end
 
     local TitleLabel = Instance.new("TextLabel")
@@ -1702,7 +1813,7 @@ function Chiro:CreateWindow(cfg)
 
     local wPill = nil
     if wTag then
-        wPill = makeTagPill(Topbar, wTag, Color3.fromRGB(30, 215, 96))
+        wPill = makeTagPill(Topbar, wTag, Color3.fromRGB(0, 242, 254))
         wPill.Position = UDim2.new(0, titleLeftOffset + 70, 0.5, -8)
     end
 
@@ -1712,12 +1823,12 @@ function Chiro:CreateWindow(cfg)
         end
     end)
 
-    -- Topbar System Info Capsule (Executor Name + Game Name)
+    -- Topbar System Info Capsule (Executor + Game + Live FPS / Ping)
     local TopInfoFrame = Instance.new("Frame")
     TopInfoFrame.Name = "TopSystemInfo"
-    TopInfoFrame.Size = UDim2.new(0, 310, 0, 24)
-    TopInfoFrame.Position = UDim2.new(0.5, -155, 0.5, -12)
-    TopInfoFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+    TopInfoFrame.Size = UDim2.new(0, 360, 0, 24)
+    TopInfoFrame.Position = UDim2.new(0.5, -180, 0.5, -12)
+    TopInfoFrame.BackgroundColor3 = Color3.fromRGB(14, 16, 24)
     TopInfoFrame.BorderSizePixel = 0
     TopInfoFrame.ClipsDescendants = true
     TopInfoFrame.Parent = Topbar
@@ -1729,44 +1840,87 @@ function Chiro:CreateWindow(cfg)
     local ExecDot = Instance.new("Frame")
     ExecDot.Size = UDim2.fromOffset(6, 6)
     ExecDot.Position = UDim2.new(0, 8, 0.5, -3)
-    ExecDot.BackgroundColor3 = Color3.fromRGB(168, 85, 247)
+    ExecDot.BackgroundColor3 = Color3.fromRGB(0, 242, 254)
     ExecDot.BorderSizePixel = 0
     ExecDot.Parent = TopInfoFrame
     makeCorner(ExecDot, 3)
 
     local ExecLabel = Instance.new("TextLabel")
-    ExecLabel.Size = UDim2.new(0, 95, 1, 0)
+    ExecLabel.Size = UDim2.new(0, 80, 1, 0)
     ExecLabel.Position = UDim2.new(0, 18, 0, 0)
     ExecLabel.BackgroundTransparency = 1
     ExecLabel.Font = Enum.Font.GothamBold
     ExecLabel.Text = string.upper(ExecutorName)
-    ExecLabel.TextColor3 = Color3.fromRGB(220, 220, 235)
+    ExecLabel.TextColor3 = Color3.fromRGB(220, 230, 245)
     ExecLabel.TextSize = 10
     ExecLabel.TextXAlignment = Enum.TextXAlignment.Left
     ExecLabel.TextTruncate = Enum.TextTruncate.AtEnd
     ExecLabel.Parent = TopInfoFrame
 
-    -- Divider line
-    local InfoDiv = Instance.new("Frame")
-    InfoDiv.Size = UDim2.new(0, 1, 0, 14)
-    InfoDiv.Position = UDim2.new(0, 116, 0.5, -7)
-    InfoDiv.BackgroundColor3 = Color3.fromRGB(50, 50, 65)
-    InfoDiv.BorderSizePixel = 0
-    InfoDiv.Parent = TopInfoFrame
+    -- Divider 1
+    local InfoDiv1 = Instance.new("Frame")
+    InfoDiv1.Size = UDim2.new(0, 1, 0, 14)
+    InfoDiv1.Position = UDim2.new(0, 102, 0.5, -7)
+    InfoDiv1.BackgroundColor3 = Color3.fromRGB(45, 52, 75)
+    InfoDiv1.BorderSizePixel = 0
+    InfoDiv1.Parent = TopInfoFrame
 
-    -- Game Name & SubLabel in top capsule
-    local SubLabel = Instance.new("TextLabel")
-    SubLabel.Size = UDim2.new(1, -124, 1, 0)
-    SubLabel.Position = UDim2.new(0, 122, 0, 0)
-    SubLabel.BackgroundTransparency = 1
-    SubLabel.Font = Enum.Font.GothamMedium
-    SubLabel.Text = GameName .. "  •  " .. wSub
-    SubLabel.TextColor3 = currentTheme.TextMuted
-    SubLabel.TextSize = 10
-    SubLabel.TextXAlignment = Enum.TextXAlignment.Left
-    SubLabel.TextTruncate = Enum.TextTruncate.AtEnd
-    SubLabel.Parent = TopInfoFrame
-    register("MutedTexts", SubLabel)
+    -- Game Name in top capsule
+    local GameLabel = Instance.new("TextLabel")
+    GameLabel.Size = UDim2.new(0, 130, 1, 0)
+    GameLabel.Position = UDim2.new(0, 110, 0, 0)
+    GameLabel.BackgroundTransparency = 1
+    GameLabel.Font = Enum.Font.GothamMedium
+    GameLabel.Text = "🎮 " .. GameName
+    GameLabel.TextColor3 = currentTheme.TextMuted
+    GameLabel.TextSize = 10
+    GameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    GameLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    GameLabel.Parent = TopInfoFrame
+    register("MutedTexts", GameLabel)
+
+    -- Divider 2
+    local InfoDiv2 = Instance.new("Frame")
+    InfoDiv2.Size = UDim2.new(0, 1, 0, 14)
+    InfoDiv2.Position = UDim2.new(0, 246, 0.5, -7)
+    InfoDiv2.BackgroundColor3 = Color3.fromRGB(45, 52, 75)
+    InfoDiv2.BorderSizePixel = 0
+    InfoDiv2.Parent = TopInfoFrame
+
+    -- Live Stats (FPS & Ping)
+    local StatsLabel = Instance.new("TextLabel")
+    StatsLabel.Size = UDim2.new(1, -254, 1, 0)
+    StatsLabel.Position = UDim2.new(0, 252, 0, 0)
+    StatsLabel.BackgroundTransparency = 1
+    StatsLabel.Font = Enum.Font.GothamBold
+    StatsLabel.Text = "⚡ 60 FPS • 40ms"
+    StatsLabel.TextColor3 = Color3.fromRGB(52, 211, 153)
+    StatsLabel.TextSize = 9.5
+    StatsLabel.TextXAlignment = Enum.TextXAlignment.Center
+    StatsLabel.Parent = TopInfoFrame
+
+    task.spawn(function()
+        local lastTime = tick()
+        local frameCount = 0
+        local fps = 60
+        RunService.RenderStepped:Connect(function()
+            frameCount = frameCount + 1
+            local now = tick()
+            if now - lastTime >= 0.5 then
+                fps = math.floor(frameCount / (now - lastTime))
+                frameCount = 0
+                lastTime = now
+                local ping = 45
+                pcall(function()
+                    ping = math.floor(StatsService.Network.ServerStatsItem["Data Ping"]:GetValue())
+                end)
+                if StatsLabel and StatsLabel.Parent then
+                    StatsLabel.Text = tostring(fps) .. " FPS • " .. tostring(ping) .. "ms"
+                    StatsLabel.TextColor3 = fps >= 45 and Color3.fromRGB(52, 211, 153) or Color3.fromRGB(251, 191, 36)
+                end
+            end
+        end)
+    end)
 
     -- Topbar Action Buttons
     local function makeTopBtn(iconAsset, xOffset, callback)
@@ -2267,75 +2421,530 @@ function Chiro:CreateWindow(cfg)
         end)
     end
 
-    -- Run Key Check (Execute-time enforcement: Requires getgenv().Key, outputs to console and kicks if missing/invalid)
+    -- ============================================================
+    --  MODERN GEN-Z KEY SYSTEM MODAL UI
+    -- ============================================================
+    local function openKeySystemModal(initialErrorMsg)
+        if ScreenGui:FindFirstChild("ChiroKeyModalOverlay") then return end
+
+        local Overlay = Instance.new("Frame")
+        Overlay.Name = "ChiroKeyModalOverlay"
+        Overlay.Size = UDim2.new(1, 0, 1, 0)
+        Overlay.Position = UDim2.new(0, 0, 0, 0)
+        Overlay.BackgroundColor3 = Color3.fromRGB(4, 6, 12)
+        Overlay.BackgroundTransparency = 0.4
+        Overlay.BorderSizePixel = 0
+        Overlay.Active = true
+        Overlay.ZIndex = 8000
+        Overlay.Parent = ScreenGui
+
+        pcall(function()
+            local Lighting = game:GetService("Lighting")
+            local blur = Instance.new("BlurEffect")
+            blur.Name = "ChiroKeyBlur"
+            blur.Size = 14
+            blur.Parent = Lighting
+            Overlay.Destroying:Connect(function()
+                pcall(function() blur:Destroy() end)
+            end)
+        end)
+
+        local Modal = Instance.new("Frame")
+        Modal.Name = "KeyModal"
+        Modal.Size = UDim2.fromOffset(470, 365)
+        Modal.AnchorPoint = Vector2.new(0.5, 0.5)
+        Modal.Position = UDim2.new(0.5, 0, 0.5, 0)
+        Modal.BackgroundColor3 = Color3.fromRGB(12, 14, 22)
+        Modal.BorderSizePixel = 0
+        Modal.ClipsDescendants = false
+        Modal.ZIndex = 8001
+        Modal.Parent = Overlay
+        makeCorner(Modal, 14)
+
+        local MScaleModal = Instance.new("UIScale")
+        MScaleModal.Scale = 0.86
+        MScaleModal.Parent = Modal
+        quickTween(MScaleModal, 0.35, { Scale = 1 }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+        -- Dynamic Animated Cyber Gradient Border
+        local MStroke = makeStroke(Modal, Color3.fromRGB(255, 255, 255), 1.5)
+        local MGrad = Instance.new("UIGradient")
+        MGrad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 242, 254)),
+            ColorSequenceKeypoint.new(0.35, Color3.fromRGB(168, 85, 247)),
+            ColorSequenceKeypoint.new(0.7, Color3.fromRGB(236, 72, 153)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 242, 254)),
+        })
+        MGrad.Parent = MStroke
+
+        local rotModal = 0
+        local connModal = RunService.RenderStepped:Connect(function(dt)
+            if Modal and Modal.Parent then
+                rotModal = (rotModal + dt * 60) % 360
+                MGrad.Rotation = rotModal
+            end
+        end)
+        Modal.Destroying:Connect(function()
+            pcall(function() connModal:Disconnect() end)
+        end)
+
+        -- Top Header Icon & Titles
+        local IconBadge = Instance.new("Frame")
+        IconBadge.Size = UDim2.fromOffset(40, 40)
+        IconBadge.Position = UDim2.new(0, 22, 0, 20)
+        IconBadge.BackgroundColor3 = Color3.fromRGB(18, 22, 36)
+        IconBadge.BorderSizePixel = 0
+        IconBadge.ZIndex = 8002
+        IconBadge.Parent = Modal
+        makeCorner(IconBadge, 10)
+        makeStroke(IconBadge, Color3.fromRGB(0, 242, 254), 1)
+
+        local IconGrad = Instance.new("UIGradient")
+        IconGrad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 242, 254)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(168, 85, 247)),
+        })
+        IconGrad.Parent = IconBadge
+
+        local IcoImg = Instance.new("ImageLabel")
+        IcoImg.Size = UDim2.fromOffset(22, 22)
+        IcoImg.Position = UDim2.new(0.5, -11, 0.5, -11)
+        IcoImg.BackgroundTransparency = 1
+        IcoImg.Image = (LucideIcons and LucideIcons["lucide-shield-check"]) or "rbxassetid://6031280882"
+        IcoImg.ImageColor3 = Color3.fromRGB(255, 255, 255)
+        IcoImg.ZIndex = 8003
+        IcoImg.Parent = IconBadge
+
+        local TitleLbl = Instance.new("TextLabel")
+        TitleLbl.Size = UDim2.new(0, 240, 0, 22)
+        TitleLbl.Position = UDim2.new(0, 72, 0, 20)
+        TitleLbl.BackgroundTransparency = 1
+        TitleLbl.Font = Enum.Font.GothamBold
+        TitleLbl.Text = "CHIRO SECURITY SYSTEM"
+        TitleLbl.TextColor3 = Color3.fromRGB(248, 250, 252)
+        TitleLbl.TextSize = 15
+        TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
+        TitleLbl.ZIndex = 8002
+        TitleLbl.Parent = Modal
+
+        local TagPill = makeTagPill(Modal, "GEN-Z v8.5", Color3.fromRGB(0, 242, 254))
+        TagPill.Position = UDim2.new(0, 316, 0, 22)
+        TagPill.ZIndex = 8002
+
+        local SubLbl = Instance.new("TextLabel")
+        SubLbl.Size = UDim2.new(1, -94, 0, 16)
+        SubLbl.Position = UDim2.new(0, 72, 0, 44)
+        SubLbl.BackgroundTransparency = 1
+        SubLbl.Font = Enum.Font.GothamMedium
+        SubLbl.Text = "Enter your license key below or generate a 24h free pass."
+        SubLbl.TextColor3 = Color3.fromRGB(148, 163, 184)
+        SubLbl.TextSize = 11
+        SubLbl.TextXAlignment = Enum.TextXAlignment.Left
+        SubLbl.ZIndex = 8002
+        SubLbl.Parent = Modal
+
+        -- Close [X] Button on Modal
+        local CloseBtn = Instance.new("TextButton")
+        CloseBtn.Size = UDim2.fromOffset(26, 26)
+        CloseBtn.Position = UDim2.new(1, -38, 0, 18)
+        CloseBtn.BackgroundColor3 = Color3.fromRGB(20, 24, 38)
+        CloseBtn.BorderSizePixel = 0
+        CloseBtn.Font = Enum.Font.GothamBold
+        CloseBtn.Text = "✕"
+        CloseBtn.TextColor3 = Color3.fromRGB(148, 163, 184)
+        CloseBtn.TextSize = 12
+        CloseBtn.AutoButtonColor = false
+        CloseBtn.ZIndex = 8002
+        CloseBtn.Parent = Modal
+        makeCorner(CloseBtn, 6)
+        makeStroke(CloseBtn, Color3.fromRGB(40, 48, 70), 1)
+
+        CloseBtn.MouseEnter:Connect(function()
+            quickTween(CloseBtn, 0.15, { BackgroundColor3 = Color3.fromRGB(239, 68, 68), TextColor3 = Color3.fromRGB(255, 255, 255) })
+        end)
+        CloseBtn.MouseLeave:Connect(function()
+            quickTween(CloseBtn, 0.15, { BackgroundColor3 = Color3.fromRGB(20, 24, 38), TextColor3 = Color3.fromRGB(148, 163, 184) })
+        end)
+        CloseBtn.MouseButton1Click:Connect(function()
+            quickTween(MScaleModal, 0.2, { Scale = 0.8 }, Enum.EasingStyle.Cubic, Enum.EasingDirection.In)
+            quickTween(Overlay, 0.2, { BackgroundTransparency = 1 })
+            task.wait(0.2)
+            Overlay:Destroy()
+            Chiro:Notify({ Title = "KEY VERIFICATION CANCELED", Content = "Script hub paused. Re-execute to unlock.", Kind = "warning", Duration = 5 })
+        end)
+
+        -- Device & Session Capsule
+        local Capsule = Instance.new("Frame")
+        Capsule.Size = UDim2.new(1, -44, 0, 26)
+        Capsule.Position = UDim2.new(0, 22, 0, 78)
+        Capsule.BackgroundColor3 = Color3.fromRGB(16, 20, 32)
+        Capsule.BorderSizePixel = 0
+        Capsule.ZIndex = 8002
+        Capsule.Parent = Modal
+        makeCorner(Capsule, 7)
+        makeStroke(Capsule, Color3.fromRGB(34, 42, 64), 1)
+
+        local CapTxt = Instance.new("TextLabel")
+        CapTxt.Size = UDim2.new(1, -16, 1, 0)
+        CapTxt.Position = UDim2.new(0, 8, 0, 0)
+        CapTxt.BackgroundTransparency = 1
+        CapTxt.Font = Enum.Font.GothamMedium
+        CapTxt.Text = "⚡ " .. string.upper(ExecutorName) .. "  •  🎮 " .. GameName .. "  •  🔒 HWID LOCKED"
+        CapTxt.TextColor3 = Color3.fromRGB(140, 155, 180)
+        CapTxt.TextSize = 10
+        CapTxt.TextXAlignment = Enum.TextXAlignment.Center
+        CapTxt.TextTruncate = Enum.TextTruncate.AtEnd
+        CapTxt.ZIndex = 8003
+        CapTxt.Parent = Capsule
+
+        -- Input Container
+        local InputBoxFrame = Instance.new("Frame")
+        InputBoxFrame.Size = UDim2.new(1, -44, 0, 48)
+        InputBoxFrame.Position = UDim2.new(0, 22, 0, 118)
+        InputBoxFrame.BackgroundColor3 = Color3.fromRGB(15, 18, 29)
+        InputBoxFrame.BorderSizePixel = 0
+        InputBoxFrame.ZIndex = 8002
+        InputBoxFrame.Parent = Modal
+        makeCorner(InputBoxFrame, 10)
+        local inStroke = makeStroke(InputBoxFrame, Color3.fromRGB(38, 46, 72), 1.2)
+
+        local KeyInput = Instance.new("TextBox")
+        KeyInput.Size = UDim2.new(1, -120, 1, 0)
+        KeyInput.Position = UDim2.new(0, 14, 0, 0)
+        KeyInput.BackgroundTransparency = 1
+        KeyInput.Font = Enum.Font.GothamMedium
+        KeyInput.PlaceholderText = "Paste your license key (CHIRO_...)"
+        KeyInput.PlaceholderColor3 = Color3.fromRGB(90, 105, 130)
+        KeyInput.Text = initialErrorMsg and "" or (loadKeyFile("chiro_key.txt") or "")
+        KeyInput.TextColor3 = Color3.fromRGB(248, 250, 252)
+        KeyInput.TextSize = 13
+        KeyInput.TextXAlignment = Enum.TextXAlignment.Left
+        KeyInput.ClearTextOnFocus = false
+        KeyInput.ZIndex = 8003
+        KeyInput.Parent = InputBoxFrame
+
+        KeyInput.Focused:Connect(function()
+            quickTween(inStroke, 0.18, { Color = Color3.fromRGB(0, 242, 254) })
+        end)
+        KeyInput.FocusLost:Connect(function()
+            quickTween(inStroke, 0.18, { Color = Color3.fromRGB(38, 46, 72) })
+        end)
+
+        -- Clear button [X]
+        local ClearBtn = Instance.new("TextButton")
+        ClearBtn.Size = UDim2.fromOffset(24, 24)
+        ClearBtn.Position = UDim2.new(1, -94, 0.5, -12)
+        ClearBtn.BackgroundColor3 = Color3.fromRGB(24, 28, 44)
+        ClearBtn.BorderSizePixel = 0
+        ClearBtn.Font = Enum.Font.GothamBold
+        ClearBtn.Text = "✕"
+        ClearBtn.TextColor3 = Color3.fromRGB(148, 163, 184)
+        ClearBtn.TextSize = 11
+        ClearBtn.AutoButtonColor = false
+        ClearBtn.Visible = #KeyInput.Text > 0
+        ClearBtn.ZIndex = 8003
+        ClearBtn.Parent = InputBoxFrame
+        makeCorner(ClearBtn, 5)
+
+        ClearBtn.MouseButton1Click:Connect(function()
+            KeyInput.Text = ""
+            ClearBtn.Visible = false
+        end)
+
+        KeyInput:GetPropertyChangedSignal("Text"):Connect(function()
+            ClearBtn.Visible = #KeyInput.Text > 0
+        end)
+
+        -- Paste Button
+        local PasteBtn = Instance.new("TextButton")
+        PasteBtn.Size = UDim2.new(0, 60, 0, 30)
+        PasteBtn.Position = UDim2.new(1, -66, 0.5, -15)
+        PasteBtn.BackgroundColor3 = Color3.fromRGB(24, 30, 48)
+        PasteBtn.BorderSizePixel = 0
+        PasteBtn.Font = Enum.Font.GothamBold
+        PasteBtn.Text = "📋 Paste"
+        PasteBtn.TextColor3 = Color3.fromRGB(0, 242, 254)
+        PasteBtn.TextSize = 11
+        PasteBtn.AutoButtonColor = false
+        PasteBtn.ZIndex = 8003
+        PasteBtn.Parent = InputBoxFrame
+        makeCorner(PasteBtn, 6)
+        makeStroke(PasteBtn, Color3.fromRGB(0, 242, 254), 1)
+
+        PasteBtn.MouseButton1Click:Connect(function()
+            pcall(function()
+                local clip = (getclipboard and getclipboard()) or nil
+                if clip and tostring(clip) ~= "" then
+                    KeyInput.Text = string.gsub(tostring(clip), "%s+", "")
+                    quickTween(PasteBtn, 0.15, { BackgroundColor3 = Color3.fromRGB(0, 242, 254), TextColor3 = Color3.fromRGB(0, 0, 0) })
+                    task.wait(0.25)
+                    quickTween(PasteBtn, 0.15, { BackgroundColor3 = Color3.fromRGB(24, 30, 48), TextColor3 = Color3.fromRGB(0, 242, 254) })
+                end
+            end)
+        end)
+
+        -- Status Feedback Label
+        local StatusLbl = Instance.new("TextLabel")
+        StatusLbl.Size = UDim2.new(1, -44, 0, 20)
+        StatusLbl.Position = UDim2.new(0, 22, 0, 172)
+        StatusLbl.BackgroundTransparency = 1
+        StatusLbl.Font = Enum.Font.GothamMedium
+        StatusLbl.Text = initialErrorMsg and ("❌ " .. tostring(initialErrorMsg)) or "🔑 Key required to decrypt and launch script."
+        StatusLbl.TextColor3 = initialErrorMsg and Color3.fromRGB(244, 63, 94) or Color3.fromRGB(148, 163, 184)
+        StatusLbl.TextSize = 11
+        StatusLbl.TextXAlignment = Enum.TextXAlignment.Center
+        StatusLbl.ZIndex = 8002
+        StatusLbl.Parent = Modal
+
+        -- Action Buttons Row
+        local ActionRow = Instance.new("Frame")
+        ActionRow.Size = UDim2.new(1, -44, 0, 42)
+        ActionRow.Position = UDim2.new(0, 22, 0, 200)
+        ActionRow.BackgroundTransparency = 1
+        ActionRow.ZIndex = 8002
+        ActionRow.Parent = Modal
+
+        -- Button 1: Get Free Key
+        local FreeKeyBtn = Instance.new("TextButton")
+        FreeKeyBtn.Size = UDim2.new(0.48, -4, 1, 0)
+        FreeKeyBtn.Position = UDim2.new(0, 0, 0, 0)
+        FreeKeyBtn.BackgroundColor3 = Color3.fromRGB(18, 22, 34)
+        FreeKeyBtn.BorderSizePixel = 0
+        FreeKeyBtn.Font = Enum.Font.GothamBold
+        FreeKeyBtn.Text = "✨ GET FREE KEY"
+        FreeKeyBtn.TextColor3 = Color3.fromRGB(220, 230, 245)
+        FreeKeyBtn.TextSize = 11
+        FreeKeyBtn.AutoButtonColor = false
+        FreeKeyBtn.ZIndex = 8003
+        FreeKeyBtn.Parent = ActionRow
+        makeCorner(FreeKeyBtn, 9)
+        local fkbStroke = makeStroke(FreeKeyBtn, Color3.fromRGB(42, 50, 78), 1)
+
+        FreeKeyBtn.MouseEnter:Connect(function()
+            quickTween(FreeKeyBtn, 0.15, { BackgroundColor3 = Color3.fromRGB(26, 32, 50) })
+            quickTween(fkbStroke, 0.15, { Color = Color3.fromRGB(0, 242, 254) })
+        end)
+        FreeKeyBtn.MouseLeave:Connect(function()
+            quickTween(FreeKeyBtn, 0.15, { BackgroundColor3 = Color3.fromRGB(18, 22, 34) })
+            quickTween(fkbStroke, 0.15, { Color = Color3.fromRGB(42, 50, 78) })
+        end)
+
+        FreeKeyBtn.MouseButton1Click:Connect(function()
+            local freeUrl = "https://chiro-license-center.onrender.com/free-key"
+            setClipboardText(freeUrl)
+            FreeKeyBtn.Text = "✓ LINK COPIED!"
+            FreeKeyBtn.TextColor3 = Color3.fromRGB(52, 211, 153)
+            Chiro:Notify({
+                Title = "FREE KEY LINK COPIED",
+                Content = "Open your browser to complete the checkpoint and claim your free key.",
+                Kind = "success",
+                Duration = 6
+            })
+            task.wait(2)
+            FreeKeyBtn.Text = "✨ GET FREE KEY"
+            FreeKeyBtn.TextColor3 = Color3.fromRGB(220, 230, 245)
+        end)
+
+        -- Button 2: Community / Support
+        local DiscordBtn = Instance.new("TextButton")
+        DiscordBtn.Size = UDim2.new(0.48, -4, 1, 0)
+        DiscordBtn.Position = UDim2.new(0.52, 4, 0, 0)
+        DiscordBtn.BackgroundColor3 = Color3.fromRGB(18, 22, 34)
+        DiscordBtn.BorderSizePixel = 0
+        DiscordBtn.Font = Enum.Font.GothamBold
+        DiscordBtn.Text = "💬 DISCORD / HELP"
+        DiscordBtn.TextColor3 = Color3.fromRGB(220, 230, 245)
+        DiscordBtn.TextSize = 11
+        DiscordBtn.AutoButtonColor = false
+        DiscordBtn.ZIndex = 8003
+        DiscordBtn.Parent = ActionRow
+        makeCorner(DiscordBtn, 9)
+        local dcbStroke = makeStroke(DiscordBtn, Color3.fromRGB(42, 50, 78), 1)
+
+        DiscordBtn.MouseEnter:Connect(function()
+            quickTween(DiscordBtn, 0.15, { BackgroundColor3 = Color3.fromRGB(26, 32, 50) })
+            quickTween(dcbStroke, 0.15, { Color = Color3.fromRGB(168, 85, 247) })
+        end)
+        DiscordBtn.MouseLeave:Connect(function()
+            quickTween(DiscordBtn, 0.15, { BackgroundColor3 = Color3.fromRGB(18, 22, 34) })
+            quickTween(dcbStroke, 0.15, { Color = Color3.fromRGB(42, 50, 78) })
+        end)
+        DiscordBtn.MouseButton1Click:Connect(function()
+            local discordLink = "https://discord.gg/chiro"
+            setClipboardText(discordLink)
+            DiscordBtn.Text = "✓ DISCORD COPIED!"
+            DiscordBtn.TextColor3 = Color3.fromRGB(168, 85, 247)
+            Chiro:Notify({
+                Title = "COMMUNITY LINK COPIED",
+                Content = "Discord link copied to clipboard! Join for updates & keys.",
+                Kind = "info",
+                Duration = 5
+            })
+            task.wait(2)
+            DiscordBtn.Text = "💬 DISCORD / HELP"
+            DiscordBtn.TextColor3 = Color3.fromRGB(220, 230, 245)
+        end)
+
+        -- Primary Action: Unlock Button
+        local UnlockBtn = Instance.new("TextButton")
+        UnlockBtn.Size = UDim2.new(1, -44, 0, 46)
+        UnlockBtn.Position = UDim2.new(0, 22, 0, 252)
+        UnlockBtn.BackgroundColor3 = Color3.fromRGB(0, 210, 255)
+        UnlockBtn.BorderSizePixel = 0
+        UnlockBtn.Font = Enum.Font.GothamBold
+        UnlockBtn.Text = "⚡ UNLOCK SCRIPT HUB"
+        UnlockBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        UnlockBtn.TextSize = 13
+        UnlockBtn.AutoButtonColor = false
+        UnlockBtn.ZIndex = 8003
+        UnlockBtn.Parent = Modal
+        makeCorner(UnlockBtn, 10)
+
+        local UnlockGrad = Instance.new("UIGradient")
+        UnlockGrad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 210, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 51, 234)),
+        })
+        UnlockGrad.Parent = UnlockBtn
+
+        local function shakeModal()
+            task.spawn(function()
+                for _, off in ipairs({ -10, 10, -6, 6, -3, 3, 0 }) do
+                    quickTween(Modal, 0.04, { Position = UDim2.new(0.5, off, 0.5, 0) })
+                    task.wait(0.04)
+                end
+            end)
+        end
+
+        local isSubmitting = false
+        UnlockBtn.MouseButton1Click:Connect(function()
+            if isSubmitting then return end
+            local entered = string.gsub(KeyInput.Text, "%s+", "")
+            if #entered < 4 then
+                StatusLbl.Text = "❌ Please enter a valid license key!"
+                StatusLbl.TextColor3 = Color3.fromRGB(244, 63, 94)
+                shakeModal()
+                return
+            end
+
+            isSubmitting = true
+            UnlockBtn.Text = "VERIFYING KEY..."
+            StatusLbl.Text = "⚡ Contacting Chiro License Cloud..."
+            StatusLbl.TextColor3 = Color3.fromRGB(56, 189, 248)
+
+            task.spawn(function()
+                local ok, info = verifyLicenseKey(entered)
+                if ok then
+                    local licObj = (type(info) == "table" and (info.license or info)) or {}
+                    local resolvedKey = tostring(licObj.key or entered)
+                    if keyConfig.SaveKey then
+                        saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
+                    end
+                    saveKeyFile("chiro_key.txt", resolvedKey)
+
+                    _G.ChiroLicenseData = {
+                        key        = resolvedKey,
+                        hwid       = getHWID(),
+                        data       = info,
+                        expiresAt  = licObj.expiresAt,
+                        isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
+                    }
+
+                    StatusLbl.Text = "✅ Key Verified! Welcome to Chiro UI."
+                    StatusLbl.TextColor3 = Color3.fromRGB(52, 211, 153)
+                    UnlockBtn.Text = "ACCESS GRANTED ✓"
+
+                    task.wait(0.4)
+                    startLicenseWatchdog(resolvedKey, info)
+
+                    -- Smooth scale & fade-out exit animation
+                    quickTween(MScaleModal, 0.25, { Scale = 0.8 }, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+                    quickTween(Overlay, 0.25, { BackgroundTransparency = 1 })
+                    task.wait(0.25)
+                    Overlay:Destroy()
+
+                    -- Reveal MainFrame with cyber pop-in
+                    MainFrame.Visible = true
+                    MScale.Scale = 0.88
+                    quickTween(MScale, 0.4, { Scale = 1 }, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
+
+                    local prodTitle = (keyConfig.ProductSlug and (" [" .. string.upper(keyConfig.ProductSlug) .. "]")) or ""
+                    Chiro:Notify({
+                        Title = "LICENSE ACTIVE" .. prodTitle,
+                        Content = "Authenticated via Cloud License API. HWID bound.",
+                        Kind = "success",
+                        Duration = 4,
+                    })
+                else
+                    isSubmitting = false
+                    local failReason = tostring(info or "Key rejected or HWID mismatch.")
+                    StatusLbl.Text = "❌ " .. failReason
+                    StatusLbl.TextColor3 = Color3.fromRGB(244, 63, 94)
+                    UnlockBtn.Text = "RETRY UNLOCK ⚡"
+                    shakeModal()
+                end
+            end)
+        end)
+
+        -- Footer info text
+        local FootLbl = Instance.new("TextLabel")
+        FootLbl.Size = UDim2.new(1, 0, 0, 16)
+        FootLbl.Position = UDim2.new(0, 0, 1, -26)
+        FootLbl.BackgroundTransparency = 1
+        FootLbl.Font = Enum.Font.GothamMedium
+        FootLbl.Text = "Protected by AES-256 Cloud License API  •  Zero Logs"
+        FootLbl.TextColor3 = Color3.fromRGB(90, 100, 125)
+        FootLbl.TextSize = 10
+        FootLbl.TextXAlignment = Enum.TextXAlignment.Center
+        FootLbl.ZIndex = 8002
+        FootLbl.Parent = Modal
+    end
+
+    -- Run Key Check on Startup:
+    -- If key was provided and valid -> Auto-unlock smoothly!
+    -- If missing or invalid -> Show the Gen-Z Key System Modal!
     if keyConfig.Enabled then
         task.spawn(function()
             local envKey = (typeof(getgenv) == "function" and getgenv().Key)
                         or _G.Key
                         or loadKeyFile(keyConfig.KeyFile or "chiro_license.key")
+                        or loadKeyFile("chiro_key.txt")
                         or nil
 
-            local function logConsoleError(msg)
-                warn("[CHIRO LICENSE ERROR] " .. tostring(msg))
-                if typeof(rconsoleerr) == "function" then
-                    pcall(function() rconsoleerr("[CHIRO LICENSE ERROR] " .. tostring(msg) .. "\n") end)
-                elseif typeof(rconsoleprint) == "function" then
-                    pcall(function() rconsoleprint("@@RED@@\n[CHIRO LICENSE ERROR] " .. tostring(msg) .. "\n@@WHITE@@") end)
-                end
-            end
-
-            local function kickPlayer(reason)
-                pcall(function()
-                    if ScreenGui and ScreenGui.Parent then
-                        ScreenGui:Destroy()
+            if envKey and tostring(envKey) ~= "" and tostring(envKey) ~= "lisence key" and tostring(envKey) ~= "CHIRO-XXXXX-XXXXX-XXXX" and tostring(envKey) ~= "YOUR-KEY" then
+                -- Key provided: try silent verification first
+                local ok, info = verifyLicenseKey(tostring(envKey))
+                if ok then
+                    local licObj = (type(info) == "table" and (info.license or info)) or {}
+                    local resolvedKey = tostring(licObj.key or envKey)
+                    if keyConfig.SaveKey then
+                        saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
                     end
-                end)
-                task.wait(0.2)
-                if LocalPlayer and LocalPlayer.Kick then
-                    LocalPlayer:Kick(reason)
+                    _G.ChiroLicenseData = {
+                        key        = resolvedKey,
+                        hwid       = getHWID(),
+                        data       = info,
+                        expiresAt  = licObj.expiresAt,
+                        isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
+                    }
+                    startLicenseWatchdog(resolvedKey, info)
+                    MainFrame.Visible = true
+                    local prodTitle = (keyConfig.ProductSlug and (" [" .. string.upper(keyConfig.ProductSlug) .. "]")) or ""
+                    Chiro:Notify({
+                        Title   = "LICENSE ACTIVE" .. prodTitle,
+                        Content = "Authenticated via Cloud License API. HWID bound.",
+                        Kind    = "success",
+                        Duration = 4,
+                    })
+                    return
+                else
+                    -- Key failed: show Gen-Z modal with error pre-filled
+                    openKeySystemModal(tostring(info or "License key invalid or expired."))
+                    return
                 end
-            end
-
-            -- 1. Check if key was provided on execute
-            if not envKey or tostring(envKey) == "" or tostring(envKey) == "lisence key" or tostring(envKey) == "CHIRO-XXXXX-XXXXX-XXXX" or tostring(envKey) == "YOUR-KEY" then
-                local missingMsg = "License key is missing! Please set getgenv().Key = 'CHIRO_...' before executing.\nGet a Free 24h Key: https://chiro-license-center.onrender.com/free-key"
-                logConsoleError(missingMsg)
-                kickPlayer("\n\n[CHIRO LICENSE REQUIRED]\n" .. missingMsg .. "\n")
-                return
-            end
-
-            -- 2. Verify License Key via API
-            local ok, info = verifyLicenseKey(tostring(envKey))
-            if ok then
-                local licObj = (type(info) == "table" and (info.license or info)) or {}
-                local resolvedKey = tostring(licObj.key or envKey)
-                if keyConfig.SaveKey then
-                    saveKeyFile(keyConfig.KeyFile or "chiro_license.key", resolvedKey)
-                end
-                _G.ChiroLicenseData = {
-                    key        = resolvedKey,
-                    hwid       = getHWID(),
-                    data       = info,
-                    expiresAt  = licObj.expiresAt,
-                    isLifetime = licObj.isLifetime or (licObj.expiresAt == nil or licObj.expiresAt == ""),
-                }
-                startLicenseWatchdog(resolvedKey, info)
-                MainFrame.Visible = true
-                local prodTitle = (keyConfig.ProductSlug and (" [" .. string.upper(keyConfig.ProductSlug) .. "]")) or ""
-                Chiro:Notify({
-                    Title   = "LICENSE ACTIVE" .. prodTitle,
-                    Content = "Authenticated via Cloud License API. HWID bound.",
-                    Kind    = "success",
-                    Duration = 4,
-                })
-                return
             else
-                -- Verification failed: log to console and kick player out of the game
-                local failReason = tostring(info or "Invalid or unverified license key.")
-                local rejectedMsg = "License key rejected: " .. failReason .. " (Key: " .. tostring(envKey) .. ")"
-                logConsoleError(rejectedMsg)
-                kickPlayer("\n\n[CHIRO LICENSE REJECTED]\n" .. failReason .. "\nKey: " .. tostring(envKey) .. "\n")
-                return
+                -- No key provided: open the Gen-Z Key Prompt Modal
+                openKeySystemModal()
             end
         end)
     end
@@ -3895,8 +4504,8 @@ function Chiro:CreateWindow(cfg)
         SetTab:CreateDropdown({
             Name     = "Interface Theme",
             Icon     = "palette",
-            Options  = { "Dark", "Light" },
-            Default  = Win._themeName or "Dark",
+            Options  = { "Cyberpunk", "Synthwave", "TokyoNight", "ToxicEmerald", "Midnight", "Dark", "Light" },
+            Default  = Win._themeName or "Cyberpunk",
             Callback = function(th)
                 Win:SetTheme(th)
             end
