@@ -1984,6 +1984,71 @@ function Chiro:CreateWindow(cfg)
         end
     end)
 
+    -- ---- FLOATING DRAGGABLE 'C' TOGGLE BUTTON (Mobile & Desktop) ----
+    local FloatingToggle = Instance.new("Frame")
+    FloatingToggle.Name = "ChiroFloatingToggle"
+    FloatingToggle.Size = UDim2.fromOffset(44, 44)
+    FloatingToggle.Position = UDim2.new(0, 16, 0.45, 0)
+    FloatingToggle.BackgroundColor3 = Color3.fromRGB(12, 14, 22)
+    FloatingToggle.BorderSizePixel = 0
+    FloatingToggle.Active = true
+    FloatingToggle.ZIndex = 8990
+    FloatingToggle.Parent = ScreenGui
+    makeCorner(FloatingToggle, 12)
+
+    local ftStroke = makeStroke(FloatingToggle, Color3.fromRGB(0, 242, 254), 1.5)
+    local ftGrad = Instance.new("UIGradient")
+    ftGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 242, 254)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(168, 85, 247)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 242, 254)),
+    })
+    ftGrad.Parent = ftStroke
+
+    local ftRot = 0
+    RunService.RenderStepped:Connect(function(dt)
+        if FloatingToggle and FloatingToggle.Parent then
+            ftRot = (ftRot + dt * 45) % 360
+            ftGrad.Rotation = ftRot
+        end
+    end)
+
+    local FtBtn = Instance.new("TextButton")
+    FtBtn.Size = UDim2.new(1, 0, 1, 0)
+    FtBtn.BackgroundTransparency = 1
+    FtBtn.Font = Enum.Font.GothamBold
+    FtBtn.Text = "C"
+    FtBtn.TextColor3 = Color3.fromRGB(0, 242, 254)
+    FtBtn.TextSize = 20
+    FtBtn.AutoButtonColor = false
+    FtBtn.ZIndex = 8991
+    FtBtn.Parent = FloatingToggle
+
+    makeDraggable(FloatingToggle, FloatingToggle)
+
+    FtBtn.MouseButton1Click:Connect(function()
+        closeActiveDropdown()
+        MainFrame.Visible = not MainFrame.Visible
+        if MainFrame.Visible then
+            MScale.Scale = 0.9
+            quickTween(MScale, 0.3, { Scale = 1 }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        end
+    end)
+
+    -- Export globally for external toggle scripts and executors
+    _G.ChiroUI_Window = Win
+    _G.ChiroUI_Root = MainFrame
+    _G.ChiroUI_ScreenGui = ScreenGui
+    _G.ChiroToggle = function()
+        closeActiveDropdown()
+        MainFrame.Visible = not MainFrame.Visible
+        if MainFrame.Visible then
+            MScale.Scale = 0.9
+            quickTween(MScale, 0.3, { Scale = 1 }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        end
+        return MainFrame.Visible
+    end
+
     -- ---- SIDEBAR CONTAINER ----
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
